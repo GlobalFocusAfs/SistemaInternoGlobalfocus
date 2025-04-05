@@ -23,16 +23,366 @@
             color: #333;
         }
         
+        .container {
+            animation: fadeInUp 0.6s ease-out forwards;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 400px;
+            padding: 30px;
+            text-align: center;
+            opacity: 0;
+        }
+        
         /* (Manter o restante do CSS original) */
         /* ... */
     </style>
     
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <!-- Firebase SDK v9+ (Modular) -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.0/firebase-app.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, query, where, orderBy, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.0/firebase-auth.js";
+        
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDCkr7lGpB6NUVNzrUNB7hE--BFsOtaHMU",
+            authDomain: "globalfocussistemainterno.firebaseapp.com",
+            projectId: "globalfocussistemainterno",
+            storageBucket: "globalfocussistemainterno.appspot.com",
+            messagingSenderId: "129171637369",
+            appId: "1:129171637369:web:cdd92b488229b46f7d00a8",
+            measurementId: "G-P7H9QMYBNJ"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        
+        // Variáveis globais
+        let currentUser = null;
+        let userData = {
+            role: '',
+            name: '',
+            department: '',
+            isAdmin: false,
+            isDirector: false
+        };
+        
+        // Dados da aplicação
+        let tasks = [];
+        let messages = [];
+        let companies = [];
+        let users = {};
+
+        // Função para inicializar usuários padrão (executar apenas uma vez)
+        async function initializeDefaultUsers() {
+            const defaultUsers = {
+                admin_total: {
+                    email: "admin@globalfocus.com",
+                    password: "Master@GF2023",
+                    name: "Administrador Geral",
+                    role: "Administrador Geral",
+                    department: "administrativa",
+                    isAdmin: true,
+                    isDirector: false
+                },
+                presidente: {
+                    email: "presidente@globalfocus.com",
+                    password: "Presi@GF2023",
+                    name: "Diretor Presidente",
+                    role: "Diretor Presidente",
+                    department: "presidencia",
+                    isAdmin: false,
+                    isDirector: true
+                },
+                // Adicione outros usuários conforme necessário
+            };
+
+            try {
+                for (const [username, user] of Object.entries(defaultUsers)) {
+                    // Cria usuário no Authentication
+                    await createUserWithEmailAndPassword(auth, user.email, user.password);
+                    
+                    // Salva dados no Firestore
+                    await setDoc(doc(db, "users", username), {
+                        ...user,
+                        password: undefined // Não armazenamos a senha no Firestore
+                    });
+                }
+                console.log("Usuários padrão criados com sucesso!");
+            } catch (error) {
+                console.error("Erro ao criar usuários padrão:", error);
+            }
+        }
+
+        // Função de Login
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('errorMessage');
+            
+            try {
+                // Verifica se é um usuário válido
+                const userDoc = await getDoc(doc(db, "users", username));
+                
+                if (!userDoc.exists()) {
+                    throw new Error("Usuário não encontrado");
+                }
+                
+                // Faz login com e-mail e senha
+                const email = userDoc.data().email;
+                await signInWithEmailAndPassword(auth, email, password);
+                
+                // Atualiza estado do usuário
+                currentUser = username;
+                userData = userDoc.data();
+                
+                // Carrega dados do usuário
+                await loadUserData();
+                showDashboard();
+                
+            } catch (error) {
+                errorMessage.textContent = error.message;
+                errorMessage.style.animation = 'shake 0.5s';
+                setTimeout(() => errorMessage.style.animation = '', 500);
+            }
+        }
+
+        // Carregar dados do usuário
+        async function loadUserData() {
+            try {
+                // Carrega mensagens
+                const messagesQuery = query(
+                    collection(db, "messages"),
+                    where("recipient", "==", currentUser),
+                    orderBy("timestamp", "desc")
+                );
+                const messagesSnapshot = await getDocs(messagesQuery);
+                messages = messagesSnapshot.docs.map(doc => doc.data());
+                
+                // Carrega tarefas
+                const tasksQuery = query(
+                    collection(db, "tasks"),
+                    where("assignedTo", "==", currentUser)
+                );
+                const tasksSnapshot = await getDocs(tasksQuery);
+                tasks = tasksSnapshot.docs.map(doc => doc.data());
+                
+                // Carrega empresas (se for consultor)
+                if (!userData.isAdmin && !userData.isDirector) {
+                    const companiesQuery = query(
+                        collection(db, "companies"),
+                        where("consultant", "==", currentUser)
+                    );
+                    const companiesSnapshot = await getDocs(companiesQuery);
+                    companies = companiesSnapshot.docs.map(doc => doc.data());
+                }
+                
+                // Carrega lista de usuários (para admin/diretores)
+                if (userData.isAdmin || userData.isDirector) {
+                    const usersSnapshot = await getDocs(collection(db, "users"));
+                    users = {};
+                    usersSnapshot.forEach(doc => {
+                        users[doc.id] = doc.data();
+                    });
+                }
+                
+            } catch (error) {
+                console.error("Erro ao carregar dados:", error);
+            }
+        }
+
+        // Função para enviar mensagens
+        async function sendMessage() {
+            const department = document.getElementById('messageDepartment').value;
+            const content = document.getElementById('messageContent').value;
+            
+            if (!content) {
+                alert('Por favor, insira o conteúdo da mensagem');
+                return;
+            }
+            
+            try {
+                // Determina destinatários
+                let recipients = [];
+                
+                if (department === 'todos') {
+                    // Todos os usuários
+                    const usersSnapshot = await getDocs(collection(db, "users"));
+                    recipients = usersSnapshot.docs.map(doc => doc.id);
+                } else if (department === 'presidencia') {
+                    // Presidente
+                    recipients = ['presidente'];
+                } else if (department === 'executiva') {
+                    // Executivo
+                    recipients = ['executivo'];
+                } else if (department === 'diretores') {
+                    // Todos diretores
+                    const directorsQuery = query(
+                        collection(db, "users"),
+                        where("isDirector", "==", true)
+                    );
+                    const directorsSnapshot = await getDocs(directorsQuery);
+                    recipients = directorsSnapshot.docs.map(doc => doc.id);
+                } else {
+                    // Departamento específico
+                    const deptUsersQuery = query(
+                        collection(db, "users"),
+                        where("department", "==", department)
+                    );
+                    const deptUsersSnapshot = await getDocs(deptUsersQuery);
+                    recipients = deptUsersSnapshot.docs.map(doc => doc.id);
+                }
+                
+                // Envia mensagens para todos os destinatários
+                const timestamp = serverTimestamp();
+                const promises = recipients.map(recipient => {
+                    const messageRef = doc(collection(db, "messages"));
+                    return setDoc(messageRef, {
+                        id: messageRef.id,
+                        sender: currentUser,
+                        senderName: userData.name,
+                        recipient: recipient,
+                        content: content,
+                        timestamp: timestamp,
+                        read: false
+                    });
+                });
+                
+                await Promise.all(promises);
+                alert('Mensagem(s) enviada(s) com sucesso!');
+                document.getElementById('messageContent').value = '';
+                
+                // Recarrega mensagens
+                await loadUserData();
+                loadMessages();
+                
+            } catch (error) {
+                console.error("Erro ao enviar mensagem:", error);
+                alert('Erro ao enviar mensagem: ' + error.message);
+            }
+        }
+
+        // Função para adicionar empresa
+        async function addCompany() {
+            const name = document.getElementById('companyName').value;
+            const contact = document.getElementById('companyContact').value;
+            const email = document.getElementById('companyEmail').value;
+            const phone = document.getElementById('companyPhone').value;
+            const service = document.getElementById('companyService').value;
+            const details = document.getElementById('companyDetails').value;
+            const status = document.getElementById('companyStatus').value;
+            
+            if (!name || !contact || !service || !details) {
+                alert('Por favor, preencha todos os campos obrigatórios');
+                return;
+            }
+            
+            try {
+                const companyRef = doc(collection(db, "companies"));
+                await setDoc(companyRef, {
+                    id: companyRef.id,
+                    name: name,
+                    contact: contact,
+                    email: email,
+                    phone: phone,
+                    service: service,
+                    details: details,
+                    status: status,
+                    consultant: currentUser,
+                    consultantName: userData.name,
+                    date: serverTimestamp()
+                });
+                
+                alert('Empresa adicionada com sucesso!');
+                
+                // Limpa o formulário
+                document.getElementById('companyName').value = '';
+                document.getElementById('companyContact').value = '';
+                document.getElementById('companyEmail').value = '';
+                document.getElementById('companyPhone').value = '';
+                document.getElementById('companyService').value = '';
+                document.getElementById('companyDetails').value = '';
+                document.getElementById('companyStatus').value = 'pendente';
+                
+                // Recarrega empresas
+                await loadUserData();
+                loadCompanies();
+                
+            } catch (error) {
+                console.error("Erro ao adicionar empresa:", error);
+                alert('Erro ao adicionar empresa: ' + error.message);
+            }
+        }
+
+        // Monitorar estado de autenticação
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // Usuário já autenticado, carrega dados
+                const username = user.email.split('@')[0];
+                const userDoc = await getDoc(doc(db, "users", username));
+                
+                if (userDoc.exists()) {
+                    currentUser = username;
+                    userData = userDoc.data();
+                    await loadUserData();
+                    showDashboard();
+                }
+            }
+        });
+
+        // Função para mostrar dashboard
+        function showDashboard() {
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            
+            document.getElementById('userRole').textContent = userData.role;
+            document.getElementById('userName').textContent = userData.name;
+            
+            // Mostra/oculta painéis conforme perfil
+            document.getElementById('adminPanel').style.display = userData.isAdmin ? 'block' : 'none';
+            document.getElementById('directorPanel').style.display = userData.isDirector ? 'block' : 'none';
+            document.getElementById('consultantPanel').style.display = (!userData.isAdmin && !userData.isDirector) ? 'block' : 'none';
+            document.getElementById('companyPanel').style.display = (!userData.isAdmin && !userData.isDirector) ? 'block' : 'none';
+            document.getElementById('companiesTabButton').style.display = (!userData.isAdmin && !userData.isDirector) ? 'block' : 'none';
+            
+            // Carrega dados na interface
+            loadTasks();
+            loadMessages();
+            loadRecentMessages();
+            loadCompanies();
+        }
+
+        // (Manter as funções de interface originais para carregar tarefas, mensagens, etc.)
+        // ...
+
+        // Inicialização
+        window.onload = function() {
+            // Adiciona animação de shake para erros
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes shake {
+                    0%, 100% { transform: translateX(0); }
+                    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+                    20%, 40%, 60%, 80% { transform: translateX(5px); }
+                }
+            `;
+            document.head.appendChild(style);
+        };
+
+        // Expor funções globais para o HTML
+        window.login = login;
+        window.sendMessage = sendMessage;
+        window.addCompany = addCompany;
+        // (Expor outras funções necessárias)
+    </script>
 </head>
 <body>
+    <!-- (Manter toda a estrutura HTML original) -->
     <!-- Login Screen -->
     <div class="container" id="loginContainer">
         <div class="logo">
@@ -55,386 +405,8 @@
 
     <!-- Dashboard -->
     <div class="dashboard" id="dashboard">
-        <!-- (Manter toda a estrutura HTML original do dashboard) -->
+        <!-- (Manter toda a estrutura do dashboard original) -->
         <!-- ... -->
     </div>
-
-    <script>
-        // 1. Configuração do Firebase (substitua com seus dados)
-        const firebaseConfig = {
-            apiKey: "SUA_API_KEY",
-            authDomain: "SEU_PROJETO.firebaseapp.com",
-            projectId: "SEU_PROJETO",
-            storageBucket: "SEU_PROJETO.appspot.com",
-            messagingSenderId: "SEU_SENDER_ID",
-            appId: "SEU_APP_ID"
-        };
-
-        // 2. Inicialização do Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const auth = firebase.auth();
-
-        // 3. Mapeamento de usuários (agora será carregado do Firestore)
-        let users = {};
-        let currentUser = null;
-        let userData = {
-            role: '',
-            name: '',
-            department: '',
-            isAdmin: false,
-            isDirector: false
-        };
-
-        // 4. Dados da aplicação
-        let tasks = [];
-        let messages = [];
-        let companies = [];
-
-        // 5. Função para inicializar usuários padrão (executar apenas uma vez)
-        async function initializeDefaultUsers() {
-            const defaultUsers = {
-                admin_total: {
-                    email: "admin@globalfocus.com",
-                    password: "Master@GF2023",
-                    name: "Administrador Geral",
-                    role: "Administrador Geral",
-                    department: "administrativa",
-                    isAdmin: true,
-                    isDirector: false
-                },
-                // ... (adicionar outros usuários conforme original)
-            };
-
-            try {
-                for (const [username, user] of Object.entries(defaultUsers)) {
-                    // Cria usuário no Authentication
-                    await auth.createUserWithEmailAndPassword(user.email, user.password);
-                    
-                    // Salva dados no Firestore
-                    await db.collection('users').doc(username).set({
-                        ...user,
-                        password: undefined // Não armazenamos a senha no Firestore
-                    });
-                }
-                console.log("Usuários padrão criados com sucesso!");
-            } catch (error) {
-                console.error("Erro ao criar usuários padrão:", error);
-            }
-        }
-
-        // 6. Função de Login
-        async function login() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const errorMessage = document.getElementById('errorMessage');
-            
-            try {
-                // Verifica se é um usuário válido
-                const userDoc = await db.collection('users').doc(username).get();
-                
-                if (!userDoc.exists) {
-                    throw new Error("Usuário não encontrado");
-                }
-                
-                // Faz login com e-mail e senha
-                const email = userDoc.data().email;
-                const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                
-                // Atualiza estado do usuário
-                currentUser = username;
-                userData = userDoc.data();
-                
-                // Carrega dados do usuário
-                await loadUserData();
-                showDashboard();
-                
-            } catch (error) {
-                errorMessage.textContent = error.message;
-                errorMessage.style.animation = 'shake 0.5s';
-                setTimeout(() => errorMessage.style.animation = '', 500);
-            }
-        }
-
-        // 7. Carregar dados do usuário
-        async function loadUserData() {
-            try {
-                // Carrega mensagens
-                const messagesSnapshot = await db.collection('messages')
-                    .where('recipient', '==', currentUser)
-                    .orderBy('timestamp', 'desc')
-                    .get();
-                
-                messages = messagesSnapshot.docs.map(doc => doc.data());
-                
-                // Carrega tarefas
-                const tasksSnapshot = await db.collection('tasks')
-                    .where('assignedTo', '==', currentUser)
-                    .get();
-                    
-                tasks = tasksSnapshot.docs.map(doc => doc.data());
-                
-                // Carrega empresas (se for consultor)
-                if (!userData.isAdmin && !userData.isDirector) {
-                    const companiesSnapshot = await db.collection('companies')
-                        .where('consultant', '==', currentUser)
-                        .get();
-                        
-                    companies = companiesSnapshot.docs.map(doc => doc.data());
-                }
-                
-                // Carrega lista de usuários (para admin/diretores)
-                if (userData.isAdmin || userData.isDirector) {
-                    const usersSnapshot = await db.collection('users').get();
-                    users = {};
-                    usersSnapshot.forEach(doc => {
-                        users[doc.id] = doc.data();
-                    });
-                }
-                
-            } catch (error) {
-                console.error("Erro ao carregar dados:", error);
-            }
-        }
-
-        // 8. Função para enviar mensagens
-        async function sendMessage() {
-            const department = document.getElementById('messageDepartment').value;
-            const content = document.getElementById('messageContent').value;
-            
-            if (!content) {
-                alert('Por favor, insira o conteúdo da mensagem');
-                return;
-            }
-            
-            try {
-                const timestamp = firebase.firestore.FieldValue.serverTimestamp();
-                const batch = db.batch();
-                
-                // Determina destinatários
-                let recipients = [];
-                
-                if (department === 'todos') {
-                    // Todos os usuários
-                    const usersSnapshot = await db.collection('users').get();
-                    recipients = usersSnapshot.docs.map(doc => doc.id);
-                } else if (department === 'presidencia') {
-                    // Presidente
-                    recipients = ['presidente'];
-                } else if (department === 'executiva') {
-                    // Executivo
-                    recipients = ['executivo'];
-                } else if (department === 'diretores') {
-                    // Todos diretores
-                    const directorsSnapshot = await db.collection('users')
-                        .where('isDirector', '==', true)
-                        .get();
-                    recipients = directorsSnapshot.docs.map(doc => doc.id);
-                } else {
-                    // Departamento específico
-                    const deptUsersSnapshot = await db.collection('users')
-                        .where('department', '==', department)
-                        .get();
-                    recipients = deptUsersSnapshot.docs.map(doc => doc.id);
-                }
-                
-                // Adiciona cada mensagem ao batch
-                recipients.forEach(recipient => {
-                    const messageRef = db.collection('messages').doc();
-                    batch.set(messageRef, {
-                        id: messageRef.id,
-                        sender: currentUser,
-                        senderName: userData.name,
-                        recipient: recipient,
-                        content: content,
-                        timestamp: timestamp,
-                        read: false
-                    });
-                });
-                
-                // Executa o batch
-                await batch.commit();
-                alert('Mensagem(s) enviada(s) com sucesso!');
-                document.getElementById('messageContent').value = '';
-                
-                // Recarrega mensagens
-                await loadUserData();
-                loadMessages();
-                
-            } catch (error) {
-                console.error("Erro ao enviar mensagem:", error);
-                alert('Erro ao enviar mensagem: ' + error.message);
-            }
-        }
-
-        // 9. Função para adicionar empresa
-        async function addCompany() {
-            const name = document.getElementById('companyName').value;
-            const contact = document.getElementById('companyContact').value;
-            const email = document.getElementById('companyEmail').value;
-            const phone = document.getElementById('companyPhone').value;
-            const service = document.getElementById('companyService').value;
-            const details = document.getElementById('companyDetails').value;
-            const status = document.getElementById('companyStatus').value;
-            
-            if (!name || !contact || !service || !details) {
-                alert('Por favor, preencha todos os campos obrigatórios');
-                return;
-            }
-            
-            try {
-                const companyRef = await db.collection('companies').add({
-                    name: name,
-                    contact: contact,
-                    email: email,
-                    phone: phone,
-                    service: service,
-                    details: details,
-                    status: status,
-                    consultant: currentUser,
-                    consultantName: userData.name,
-                    date: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                alert('Empresa adicionada com sucesso!');
-                
-                // Limpa o formulário
-                document.getElementById('companyName').value = '';
-                document.getElementById('companyContact').value = '';
-                document.getElementById('companyEmail').value = '';
-                document.getElementById('companyPhone').value = '';
-                document.getElementById('companyService').value = '';
-                document.getElementById('companyDetails').value = '';
-                document.getElementById('companyStatus').value = 'pendente';
-                
-                // Recarrega empresas
-                await loadUserData();
-                loadCompanies();
-                
-                // Notifica diretores
-                await notifyNewCompany({
-                    name: name,
-                    service: service,
-                    status: status
-                });
-                
-            } catch (error) {
-                console.error("Erro ao adicionar empresa:", error);
-                alert('Erro ao adicionar empresa: ' + error.message);
-            }
-        }
-
-        // 10. Função para notificar sobre nova empresa
-        async function notifyNewCompany(company) {
-            try {
-                const message = `Nova empresa adicionada: ${company.name} (${company.service}) por ${userData.name}. Status: ${company.status === 'concluido' ? 'Concluído' : 'Pendente'}`;
-                const timestamp = firebase.firestore.FieldValue.serverTimestamp();
-                const batch = db.batch();
-                
-                // Envia para admin
-                if (currentUser !== 'admin_total') {
-                    const adminMsgRef = db.collection('messages').doc();
-                    batch.set(adminMsgRef, {
-                        id: adminMsgRef.id,
-                        sender: currentUser,
-                        senderName: userData.name,
-                        recipient: 'admin_total',
-                        content: message,
-                        timestamp: timestamp,
-                        read: false
-                    });
-                }
-                
-                // Envia para presidente
-                if (currentUser !== 'presidente') {
-                    const presMsgRef = db.collection('messages').doc();
-                    batch.set(presMsgRef, {
-                        id: presMsgRef.id,
-                        sender: currentUser,
-                        senderName: userData.name,
-                        recipient: 'presidente',
-                        content: message,
-                        timestamp: timestamp,
-                        read: false
-                    });
-                }
-                
-                // Envia para diretor do departamento
-                if (!userData.isAdmin && !userData.isDirector) {
-                    const directorId = 'dir_' + userData.department;
-                    const directorMsgRef = db.collection('messages').doc();
-                    batch.set(directorMsgRef, {
-                        id: directorMsgRef.id,
-                        sender: currentUser,
-                        senderName: userData.name,
-                        recipient: directorId,
-                        content: message,
-                        timestamp: timestamp,
-                        read: false
-                    });
-                }
-                
-                await batch.commit();
-                
-            } catch (error) {
-                console.error("Erro ao notificar sobre nova empresa:", error);
-            }
-        }
-
-        // 11. Funções de interface (manter as originais, atualizadas para usar os novos dados)
-        function showDashboard() {
-            document.getElementById('loginContainer').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'block';
-            
-            document.getElementById('userRole').textContent = userData.role;
-            document.getElementById('userName').textContent = userData.name;
-            
-            // Mostra/oculta painéis conforme perfil
-            document.getElementById('adminPanel').style.display = userData.isAdmin ? 'block' : 'none';
-            document.getElementById('directorPanel').style.display = userData.isDirector ? 'block' : 'none';
-            document.getElementById('consultantPanel').style.display = (!userData.isAdmin && !userData.isDirector) ? 'block' : 'none';
-            document.getElementById('companyPanel').style.display = (!userData.isAdmin && !userData.isDirector) ? 'block' : 'none';
-            document.getElementById('companiesTabButton').style.display = (!userData.isAdmin && !userData.isDirector) ? 'block' : 'none';
-            
-            // Carrega dados na interface
-            loadTasks();
-            loadMessages();
-            loadRecentMessages();
-            loadCompanies();
-        }
-
-        // 12. Inicialização do sistema
-        window.onload = function() {
-            // Verifica se o usuário já está logado
-            auth.onAuthStateChanged(async (user) => {
-                if (user) {
-                    // Usuário já autenticado, carrega dados
-                    const username = user.email.split('@')[0];
-                    const userDoc = await db.collection('users').doc(username).get();
-                    
-                    if (userDoc.exists) {
-                        currentUser = username;
-                        userData = userDoc.data();
-                        await loadUserData();
-                        showDashboard();
-                    }
-                }
-            });
-            
-            // Adiciona animação de shake para erros
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes shake {
-                    0%, 100% { transform: translateX(0); }
-                    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-                    20%, 40%, 60%, 80% { transform: translateX(5px); }
-                }
-            `;
-            document.head.appendChild(style);
-        };
-
-        // (Manter todas as outras funções de interface originais)
-        // ...
-    </script>
 </body>
 </html>
