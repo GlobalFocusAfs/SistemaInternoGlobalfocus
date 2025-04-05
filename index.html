@@ -28,7 +28,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             color: #333;
         }
         
@@ -118,6 +118,7 @@
             border-radius: 10px;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
             padding: 20px;
+            margin: 20px auto;
         }
         
         .header {
@@ -151,16 +152,54 @@
             background-color: #c0392b;
         }
         
-        .content {
+        .tabs {
             display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            border-bottom: 3px solid #3498db;
+            font-weight: 600;
+            color: #3498db;
+        }
+        
+        .tab:hover:not(.active) {
+            background-color: #f5f5f5;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 20px;
         }
         
-        .tasks, .messages {
-            flex: 1;
+        @media (max-width: 768px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .panel {
             background-color: #f9f9f9;
             border-radius: 5px;
             padding: 15px;
+            height: 100%;
         }
         
         .section-title {
@@ -171,7 +210,7 @@
             border-bottom: 1px solid #ddd;
         }
         
-        .task-item, .message-item {
+        .task-item, .message-item, .company-item {
             background-color: white;
             padding: 10px;
             margin-bottom: 10px;
@@ -179,17 +218,24 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
         
-        .task-title, .message-sender {
+        .task-title, .message-sender, .company-name {
             font-weight: 600;
             margin-bottom: 5px;
         }
         
-        .task-desc, .message-content {
+        .task-desc, .message-content, .company-info {
             font-size: 14px;
             color: #666;
         }
         
-        .admin-panel, .director-panel, .consultant-panel {
+        .message-time, .company-date {
+            font-size: 12px;
+            color: #999;
+            text-align: right;
+            margin-top: 5px;
+        }
+        
+        .admin-panel, .director-panel, .consultant-panel, .company-panel {
             display: none;
             margin-top: 20px;
             padding: 15px;
@@ -197,11 +243,11 @@
             border-radius: 5px;
         }
         
-        .admin-panel h3, .director-panel h3, .consultant-panel h3 {
+        .admin-panel h3, .director-panel h3, .consultant-panel h3, .company-panel h3 {
             margin-top: 0;
         }
         
-        .admin-form, .director-form, .consultant-form {
+        .admin-form, .director-form, .consultant-form, .company-form {
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -209,13 +255,14 @@
         
         .admin-form select, .admin-form textarea, .admin-form input,
         .director-form select, .director-form textarea,
-        .consultant-form select, .consultant-form textarea {
+        .consultant-form select, .consultant-form textarea,
+        .company-form input, .company-form textarea, .company-form select {
             padding: 8px;
             border: 1px solid #ddd;
             border-radius: 4px;
         }
         
-        .admin-form button, .director-form button, .consultant-form button {
+        .admin-form button, .director-form button, .consultant-form button, .company-form button {
             width: auto;
             align-self: flex-start;
             padding: 8px 15px;
@@ -246,6 +293,53 @@
         
         .select-all input {
             margin-right: 8px;
+        }
+        
+        .company-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .company-table th, .company-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .company-table th {
+            background-color: #f2f2f2;
+            font-weight: 600;
+        }
+        
+        .company-table tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .status-pending {
+            color: #e67e22;
+            font-weight: 600;
+        }
+        
+        .status-completed {
+            color: #27ae60;
+            font-weight: 600;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 20px;
+            color: #777;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .form-row .input-group {
+            flex: 1;
+            margin-bottom: 0;
         }
     </style>
 </head>
@@ -283,115 +377,213 @@
             <button class="logout-btn" onclick="logout()">Sair</button>
         </div>
         
-        <div class="content">
-            <div class="tasks">
-                <h3 class="section-title">Minhas Tarefas</h3>
-                <div id="tasksList"></div>
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('dashboardTab')">Dashboard</div>
+            <div class="tab" onclick="switchTab('messagesTab')">Mensagens</div>
+            <div class="tab" id="companiesTabButton" style="display: none;" onclick="switchTab('companiesTab')">Empresas</div>
+        </div>
+        
+        <div id="dashboardTab" class="tab-content active">
+            <div class="content-grid">
+                <div class="panel">
+                    <h3 class="section-title">Minhas Tarefas</h3>
+                    <div id="tasksList"></div>
+                </div>
+                
+                <div class="panel">
+                    <h3 class="section-title">Últimas Mensagens</h3>
+                    <div id="recentMessages"></div>
+                </div>
             </div>
             
-            <div class="messages">
-                <h3 class="section-title">Mensagens</h3>
+            <!-- Admin Panel -->
+            <div class="admin-panel" id="adminPanel">
+                <h3>Painel de Administração</h3>
+                <div class="admin-form">
+                    <label>Adicionar Tarefas</label>
+                    <select id="taskDepartment">
+                        <option value="">Selecione um departamento</option>
+                        <option value="financas">Finanças</option>
+                        <option value="marketing">Marketing</option>
+                        <option value="novos_negocios">Novos Negócios</option>
+                        <option value="rh">Recursos Humanos</option>
+                        <option value="logistica">Logística</option>
+                        <option value="administrativa">Administrativa</option>
+                        <option value="diretores">Diretores</option>
+                    </select>
+                    
+                    <div id="userSelection" style="display: none;">
+                        <div class="select-all">
+                            <input type="checkbox" id="selectAllUsers" onchange="toggleAllUsers()">
+                            <label for="selectAllUsers">Selecionar todos os consultores desta área</label>
+                        </div>
+                        <div class="checkbox-group" id="userCheckboxes"></div>
+                    </div>
+                    
+                    <input type="text" id="taskTitle" placeholder="Título da tarefa">
+                    <textarea id="taskDescription" placeholder="Descrição da tarefa"></textarea>
+                    <button onclick="addTask()">Adicionar Tarefa</button>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <h4>Enviar Mensagem</h4>
+                    <select id="messageDepartment">
+                        <option value="">Selecione um departamento</option>
+                        <option value="financas">Finanças</option>
+                        <option value="marketing">Marketing</option>
+                        <option value="novos_negocios">Novos Negócios</option>
+                        <option value="rh">Recursos Humanos</option>
+                        <option value="logistica">Logística</option>
+                        <option value="administrativa">Administrativa</option>
+                        <option value="diretores">Diretores</option>
+                        <option value="presidencia">Presidência</option>
+                        <option value="executiva">Executiva</option>
+                        <option value="todos">Todos os Funcionários</option>
+                    </select>
+                    
+                    <div id="messageUserSelection" style="display: none; margin-top: 10px;">
+                        <div class="select-all">
+                            <input type="checkbox" id="selectAllMessageUsers" onchange="toggleAllMessageUsers()">
+                            <label for="selectAllMessageUsers">Selecionar todos os consultores desta área</label>
+                        </div>
+                        <div class="checkbox-group" id="messageUserCheckboxes"></div>
+                    </div>
+                    
+                    <textarea id="messageContent" placeholder="Conteúdo da mensagem" style="margin-top: 10px;"></textarea>
+                    <button onclick="sendMessage()">Enviar Mensagem</button>
+                </div>
+            </div>
+            
+            <!-- Director Panel -->
+            <div class="director-panel" id="directorPanel">
+                <h3>Painel de Diretor</h3>
+                <div class="director-form">
+                    <select id="directorMessageDepartment">
+                        <option value="">Selecione um departamento</option>
+                        <option value="financas">Finanças</option>
+                        <option value="marketing">Marketing</option>
+                        <option value="novos_negocios">Novos Negócios</option>
+                        <option value="rh">Recursos Humanos</option>
+                        <option value="logistica">Logística</option>
+                        <option value="administrativa">Administrativa</option>
+                        <option value="consultores">Todos os Consultores</option>
+                        <option value="presidencia">Presidência</option>
+                        <option value="executiva">Executiva</option>
+                    </select>
+                    <textarea id="directorMessageContent" placeholder="Conteúdo da mensagem"></textarea>
+                    <button onclick="sendDirectorMessage()">Enviar Mensagem</button>
+                </div>
+            </div>
+            
+            <!-- Consultant Panel -->
+            <div class="consultant-panel" id="consultantPanel">
+                <h3>Painel de Consultor</h3>
+                <div class="consultant-form">
+                    <select id="consultantMessageDepartment">
+                        <option value="">Selecione um departamento</option>
+                        <option value="financas">Finanças</option>
+                        <option value="marketing">Marketing</option>
+                        <option value="novos_negocios">Novos Negócios</option>
+                        <option value="rh">Recursos Humanos</option>
+                        <option value="logistica">Logística</option>
+                        <option value="administrativa">Administrativa</option>
+                        <option value="diretores">Diretores</option>
+                        <option value="presidencia">Presidência</option>
+                        <option value="executiva">Executiva</option>
+                    </select>
+                    <textarea id="consultantMessageContent" placeholder="Conteúdo da mensagem"></textarea>
+                    <button onclick="sendConsultantMessage()">Enviar Mensagem</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Messages Tab -->
+        <div id="messagesTab" class="tab-content">
+            <div class="panel">
+                <h3 class="section-title">Caixa de Entrada</h3>
                 <div id="messagesList"></div>
             </div>
+            
+            <div class="panel" style="margin-top: 20px;">
+                <h3 class="section-title">Enviar Nova Mensagem</h3>
+                <div class="consultant-form">
+                    <select id="newMessageDepartment">
+                        <option value="">Selecione um destinatário</option>
+                        <option value="financas">Finanças</option>
+                        <option value="marketing">Marketing</option>
+                        <option value="novos_negocios">Novos Negócios</option>
+                        <option value="rh">Recursos Humanos</option>
+                        <option value="logistica">Logística</option>
+                        <option value="administrativa">Administrativa</option>
+                        <option value="diretores">Diretores</option>
+                        <option value="presidencia">Presidência</option>
+                        <option value="executiva">Executiva</option>
+                    </select>
+                    <textarea id="newMessageContent" placeholder="Escreva sua mensagem aqui..."></textarea>
+                    <button onclick="sendNewMessage()">Enviar Mensagem</button>
+                </div>
+            </div>
         </div>
         
-        <!-- Admin Panel -->
-        <div class="admin-panel" id="adminPanel">
-            <h3>Painel de Administração</h3>
-            <div class="admin-form">
-                <label>Adicionar Tarefas</label>
-                <select id="taskDepartment">
-                    <option value="">Selecione um departamento</option>
-                    <option value="financas">Finanças</option>
-                    <option value="marketing">Marketing</option>
-                    <option value="novos_negocios">Novos Negócios</option>
-                    <option value="rh">Recursos Humanos</option>
-                    <option value="logistica">Logística</option>
-                    <option value="administrativa">Administrativa</option>
-                    <option value="diretores">Diretores</option>
-                </select>
-                
-                <div id="userSelection" style="display: none;">
-                    <div class="select-all">
-                        <input type="checkbox" id="selectAllUsers" onchange="toggleAllUsers()">
-                        <label for="selectAllUsers">Selecionar todos os consultores desta área</label>
-                    </div>
-                    <div class="checkbox-group" id="userCheckboxes"></div>
-                </div>
-                
-                <input type="text" id="taskTitle" placeholder="Título da tarefa">
-                <textarea id="taskDescription" placeholder="Descrição da tarefa"></textarea>
-                <button onclick="addTask()">Adicionar Tarefa</button>
+        <!-- Companies Tab -->
+        <div id="companiesTab" class="tab-content">
+            <div class="panel">
+                <h3 class="section-title">Empresas Atendidas</h3>
+                <div id="companiesList"></div>
             </div>
             
-            <div style="margin-top: 20px;">
-                <h4>Enviar Mensagem</h4>
-                <select id="messageDepartment">
-                    <option value="">Selecione um departamento</option>
-                    <option value="financas">Finanças</option>
-                    <option value="marketing">Marketing</option>
-                    <option value="novos_negocios">Novos Negócios</option>
-                    <option value="rh">Recursos Humanos</option>
-                    <option value="logistica">Logística</option>
-                    <option value="administrativa">Administrativa</option>
-                    <option value="diretores">Diretores</option>
-                    <option value="presidencia">Presidência</option>
-                    <option value="executiva">Executiva</option>
-                    <option value="todos">Todos os Funcionários</option>
-                </select>
-                
-                <div id="messageUserSelection" style="display: none; margin-top: 10px;">
-                    <div class="select-all">
-                        <input type="checkbox" id="selectAllMessageUsers" onchange="toggleAllMessageUsers()">
-                        <label for="selectAllMessageUsers">Selecionar todos os consultores desta área</label>
+            <div class="company-panel" id="companyPanel">
+                <h3>Adicionar Nova Empresa</h3>
+                <div class="company-form">
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="companyName">Nome da Empresa</label>
+                            <input type="text" id="companyName" placeholder="Nome da empresa">
+                        </div>
+                        <div class="input-group">
+                            <label for="companyContact">Contato</label>
+                            <input type="text" id="companyContact" placeholder="Nome do contato">
+                        </div>
                     </div>
-                    <div class="checkbox-group" id="messageUserCheckboxes"></div>
+                    
+                    <div class="form-row">
+                        <div class="input-group">
+                            <label for="companyEmail">E-mail</label>
+                            <input type="email" id="companyEmail" placeholder="E-mail da empresa">
+                        </div>
+                        <div class="input-group">
+                            <label for="companyPhone">Telefone</label>
+                            <input type="tel" id="companyPhone" placeholder="Telefone da empresa">
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="companyService">Serviço Prestado</label>
+                        <select id="companyService">
+                            <option value="">Selecione o serviço</option>
+                            <option value="consultoria">Consultoria</option>
+                            <option value="treinamento">Treinamento</option>
+                            <option value="auditoria">Auditoria</option>
+                            <option value="desenvolvimento">Desenvolvimento</option>
+                            <option value="outro">Outro</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="companyDetails">Detalhes do Atendimento</label>
+                        <textarea id="companyDetails" placeholder="Descreva o que foi feito na empresa" rows="4"></textarea>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="companyStatus">Status</label>
+                        <select id="companyStatus">
+                            <option value="pendente">Pendente</option>
+                            <option value="concluido">Concluído</option>
+                        </select>
+                    </div>
+                    
+                    <button onclick="addCompany()">Adicionar Empresa</button>
                 </div>
-                
-                <textarea id="messageContent" placeholder="Conteúdo da mensagem" style="margin-top: 10px;"></textarea>
-                <button onclick="sendMessage()">Enviar Mensagem</button>
-            </div>
-        </div>
-        
-        <!-- Director Panel -->
-        <div class="director-panel" id="directorPanel">
-            <h3>Painel de Diretor</h3>
-            <div class="director-form">
-                <select id="directorMessageDepartment">
-                    <option value="">Selecione um departamento</option>
-                    <option value="financas">Finanças</option>
-                    <option value="marketing">Marketing</option>
-                    <option value="novos_negocios">Novos Negócios</option>
-                    <option value="rh">Recursos Humanos</option>
-                    <option value="logistica">Logística</option>
-                    <option value="administrativa">Administrativa</option>
-                    <option value="consultores">Todos os Consultores</option>
-                    <option value="presidencia">Presidência</option>
-                    <option value="executiva">Executiva</option>
-                </select>
-                <textarea id="directorMessageContent" placeholder="Conteúdo da mensagem"></textarea>
-                <button onclick="sendDirectorMessage()">Enviar Mensagem</button>
-            </div>
-        </div>
-        
-        <!-- Consultant Panel -->
-        <div class="consultant-panel" id="consultantPanel">
-            <h3>Painel de Consultor</h3>
-            <div class="consultant-form">
-                <select id="consultantMessageDepartment">
-                    <option value="">Selecione um departamento</option>
-                    <option value="financas">Finanças</option>
-                    <option value="marketing">Marketing</option>
-                    <option value="novos_negocios">Novos Negócios</option>
-                    <option value="rh">Recursos Humanos</option>
-                    <option value="logistica">Logística</option>
-                    <option value="administrativa">Administrativa</option>
-                    <option value="diretores">Diretores</option>
-                    <option value="presidencia">Presidência</option>
-                    <option value="executiva">Executiva</option>
-                </select>
-                <textarea id="consultantMessageContent" placeholder="Conteúdo da mensagem"></textarea>
-                <button onclick="sendConsultantMessage()">Enviar Mensagem</button>
             </div>
         </div>
     </div>
@@ -611,9 +803,10 @@
         // Tasks and messages database
         let tasks = {};
         let messages = {};
+        let companies = [];
         
-        // Initialize with some sample tasks
-        function initializeSampleTasks() {
+        // Initialize with some sample data
+        function initializeSampleData() {
             tasks = {
                 financas1: [
                     { title: "Analisar relatório mensal", description: "Analisar o relatório financeiro do mês anterior e identificar pontos de melhoria." },
@@ -639,23 +832,55 @@
             // Add some sample messages
             messages.admin_total.push({ 
                 sender: "Sistema", 
-                content: "Bem-vindo ao painel de administração global. Você tem controle total sobre o sistema." 
+                content: "Bem-vindo ao painel de administração global. Você tem controle total sobre o sistema.",
+                timestamp: new Date().toISOString()
             });
             
             messages.presidente.push({ 
                 sender: "Sistema", 
-                content: "Lembrete: Reunião de diretoria na próxima segunda-feira às 10h." 
+                content: "Lembrete: Reunião de diretoria na próxima segunda-feira às 10h.",
+                timestamp: new Date().toISOString()
             });
             
             messages.financas1.push({ 
                 sender: "Diretor de Finanças", 
-                content: "Por favor, envie o relatório mensal até sexta-feira." 
+                content: "Por favor, envie o relatório mensal até sexta-feira.",
+                timestamp: new Date().toISOString()
             });
             
             messages.dir_administrativo.push({
                 sender: "Sistema",
-                content: "Bem-vindo, Diretor Administrativo. Você pode enviar mensagens para outros departamentos."
+                content: "Bem-vindo, Diretor Administrativo. Você pode enviar mensagens para outros departamentos.",
+                timestamp: new Date().toISOString()
             });
+            
+            // Sample companies data
+            companies = [
+                {
+                    id: 1,
+                    name: "Empresa ABC Ltda",
+                    contact: "João Silva",
+                    email: "joao@empresaabc.com",
+                    phone: "(11) 9999-9999",
+                    service: "consultoria",
+                    details: "Realizada análise de processos financeiros e sugeridas melhorias.",
+                    status: "concluido",
+                    consultant: "financas1",
+                    date: "2023-10-01"
+                },
+                {
+                    id: 2,
+                    name: "Comércio XYZ S.A.",
+                    contact: "Maria Souza",
+                    email: "maria@comercioxyz.com",
+                    phone: "(11) 8888-8888",
+                    service: "treinamento",
+                    details: "Treinamento em gestão de equipes realizado para o departamento de RH.",
+                    status: "pendente",
+                    consultant: "rh1",
+                    date: "2023-10-05"
+                }
+            ];
         }
         
         // Current user
@@ -700,6 +925,7 @@
             document.getElementById('adminPanel').style.display = 'none';
             document.getElementById('directorPanel').style.display = 'none';
             document.getElementById('consultantPanel').style.display = 'none';
+            document.getElementById('companyPanel').style.display = 'none';
             
             if (user.isAdmin && currentUser === 'admin_total') {
                 document.getElementById('adminPanel').style.display = 'block';
@@ -709,11 +935,50 @@
                 document.getElementById('directorPanel').style.display = 'block';
             } else {
                 document.getElementById('consultantPanel').style.display = 'block';
+                document.getElementById('companyPanel').style.display = 'block';
+                document.getElementById('companiesTabButton').style.display = 'block';
             }
             
-            // Load tasks and messages
+            // Load initial data
             loadTasks();
             loadMessages();
+            loadRecentMessages();
+            loadCompanies();
+        }
+        
+        // Switch between tabs
+        function switchTab(tabId) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Deactivate all tabs
+            document.querySelectorAll('.tabs .tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Activate selected tab
+            document.getElementById(tabId).classList.add('active');
+            
+            // Find and activate the clicked tab button
+            const tabs = document.querySelectorAll('.tabs .tab');
+            for (let i = 0; i < tabs.length; i++) {
+                if (tabs[i].getAttribute('onclick').includes(tabId)) {
+                    tabs[i].classList.add('active');
+                    break;
+                }
+            }
+            
+            // Refresh content if needed
+            if (tabId === 'messagesTab') {
+                loadMessages();
+            } else if (tabId === 'companiesTab') {
+                loadCompanies();
+            } else if (tabId === 'dashboardTab') {
+                loadTasks();
+                loadRecentMessages();
+            }
         }
         
         // Load tasks for current user
@@ -732,7 +997,7 @@
                     tasksList.appendChild(taskElement);
                 });
             } else {
-                tasksList.innerHTML = '<p>Nenhuma tarefa atribuída.</p>';
+                tasksList.innerHTML = '<div class="empty-state">Nenhuma tarefa atribuída.</div>';
             }
         }
         
@@ -742,17 +1007,286 @@
             messagesList.innerHTML = '';
             
             if (messages[currentUser] && messages[currentUser].length > 0) {
-                messages[currentUser].forEach(message => {
+                // Sort messages by timestamp (newest first)
+                const sortedMessages = [...messages[currentUser]].sort((a, b) => 
+                    new Date(b.timestamp) - new Date(a.timestamp)
+                );
+                
+                sortedMessages.forEach(message => {
                     const messageElement = document.createElement('div');
                     messageElement.className = 'message-item';
+                    
+                    const date = new Date(message.timestamp);
+                    const formattedDate = date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR');
+                    
                     messageElement.innerHTML = `
                         <div class="message-sender">${message.sender}</div>
                         <div class="message-content">${message.content}</div>
+                        <div class="message-time">${formattedDate}</div>
                     `;
                     messagesList.appendChild(messageElement);
                 });
             } else {
-                messagesList.innerHTML = '<p>Nenhuma mensagem recebida.</p>';
+                messagesList.innerHTML = '<div class="empty-state">Nenhuma mensagem recebida.</div>';
+            }
+        }
+        
+        // Load recent messages for dashboard
+        function loadRecentMessages() {
+            const recentMessages = document.getElementById('recentMessages');
+            recentMessages.innerHTML = '';
+            
+            if (messages[currentUser] && messages[currentUser].length > 0) {
+                // Get last 3 messages
+                const lastMessages = [...messages[currentUser]]
+                    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+                    .slice(0, 3);
+                
+                lastMessages.forEach(message => {
+                    const messageElement = document.createElement('div');
+                    messageElement.className = 'message-item';
+                    
+                    const date = new Date(message.timestamp);
+                    const formattedDate = date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR');
+                    
+                    messageElement.innerHTML = `
+                        <div class="message-sender">${message.sender}</div>
+                        <div class="message-content">${message.content}</div>
+                        <div class="message-time">${formattedDate}</div>
+                    `;
+                    recentMessages.appendChild(messageElement);
+                });
+                
+                if (messages[currentUser].length > 3) {
+                    const moreLink = document.createElement('div');
+                    moreLink.style.textAlign = 'right';
+                    moreLink.style.marginTop = '10px';
+                    moreLink.innerHTML = `<a href="#" onclick="switchTab('messagesTab')">Ver todas as mensagens</a>`;
+                    recentMessages.appendChild(moreLink);
+                }
+            } else {
+                recentMessages.innerHTML = '<div class="empty-state">Nenhuma mensagem recente.</div>';
+            }
+        }
+        
+        // Load companies data
+        function loadCompanies() {
+            const companiesList = document.getElementById('companiesList');
+            companiesList.innerHTML = '';
+            
+            // Filter companies based on user role
+            let filteredCompanies = [];
+            
+            if (users[currentUser].isAdmin) {
+                filteredCompanies = [...companies];
+            } else if (users[currentUser].isDirector) {
+                // Directors can see all companies from their area
+                const department = users[currentUser].department;
+                if (department === 'diretores') {
+                    filteredCompanies = [...companies];
+                } else {
+                    filteredCompanies = companies.filter(company => {
+                        const consultantDept = users[company.consultant]?.department;
+                        return consultantDept === department.replace('dir_', '');
+                    });
+                }
+            } else {
+                // Consultants can only see their own companies
+                filteredCompanies = companies.filter(company => company.consultant === currentUser);
+            }
+            
+            if (filteredCompanies.length > 0) {
+                const table = document.createElement('table');
+                table.className = 'company-table';
+                
+                // Table header
+                const thead = document.createElement('thead');
+                thead.innerHTML = `
+                    <tr>
+                        <th>Empresa</th>
+                        <th>Contato</th>
+                        <th>Serviço</th>
+                        <th>Status</th>
+                        <th>Data</th>
+                        <th>Consultor</th>
+                    </tr>
+                `;
+                table.appendChild(thead);
+                
+                // Table body
+                const tbody = document.createElement('tbody');
+                
+                // Sort companies by date (newest first)
+                filteredCompanies.sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                filteredCompanies.forEach(company => {
+                    const row = document.createElement('tr');
+                    
+                    // Format status
+                    const statusText = company.status === 'concluido' ? 
+                        '<span class="status-completed">Concluído</span>' : 
+                        '<span class="status-pending">Pendente</span>';
+                    
+                    // Format date
+                    const formattedDate = new Date(company.date).toLocaleDateString('pt-BR');
+                    
+                    // Get consultant name
+                    const consultantName = users[company.consultant]?.name || company.consultant;
+                    
+                    row.innerHTML = `
+                        <td>${company.name}</td>
+                        <td>${company.contact}</td>
+                        <td>${company.service}</td>
+                        <td>${statusText}</td>
+                        <td>${formattedDate}</td>
+                        <td>${consultantName}</td>
+                    `;
+                    
+                    // Add click event to show details
+                    row.addEventListener('click', () => showCompanyDetails(company));
+                    row.style.cursor = 'pointer';
+                    
+                    tbody.appendChild(row);
+                });
+                
+                table.appendChild(tbody);
+                companiesList.appendChild(table);
+            } else {
+                companiesList.innerHTML = '<div class="empty-state">Nenhuma empresa registrada.</div>';
+            }
+        }
+        
+        // Show company details
+        function showCompanyDetails(company) {
+            // Format date
+            const formattedDate = new Date(company.date).toLocaleDateString('pt-BR');
+            
+            // Get consultant name
+            const consultantName = users[company.consultant]?.name || company.consultant;
+            
+            // Format status
+            const statusText = company.status === 'concluido' ? 'Concluído' : 'Pendente';
+            
+            // Create modal or show in a panel
+            alert(`
+                Detalhes da Empresa:
+                
+                Nome: ${company.name}
+                Contato: ${company.contact}
+                E-mail: ${company.email}
+                Telefone: ${company.phone}
+                Serviço: ${company.service}
+                Status: ${statusText}
+                Data: ${formattedDate}
+                Consultor: ${consultantName}
+                
+                Detalhes do Atendimento:
+                ${company.details}
+            `);
+        }
+        
+        // Add new company
+        function addCompany() {
+            const name = document.getElementById('companyName').value;
+            const contact = document.getElementById('companyContact').value;
+            const email = document.getElementById('companyEmail').value;
+            const phone = document.getElementById('companyPhone').value;
+            const service = document.getElementById('companyService').value;
+            const details = document.getElementById('companyDetails').value;
+            const status = document.getElementById('companyStatus').value;
+            
+            if (!name || !contact || !service || !details) {
+                alert('Por favor, preencha todos os campos obrigatórios.');
+                return;
+            }
+            
+            const newCompany = {
+                id: companies.length + 1,
+                name,
+                contact,
+                email,
+                phone,
+                service,
+                details,
+                status,
+                consultant: currentUser,
+                date: new Date().toISOString().split('T')[0] // YYYY-MM-DD
+            };
+            
+            companies.push(newCompany);
+            
+            // Clear form
+            document.getElementById('companyName').value = '';
+            document.getElementById('companyContact').value = '';
+            document.getElementById('companyEmail').value = '';
+            document.getElementById('companyPhone').value = '';
+            document.getElementById('companyService').value = '';
+            document.getElementById('companyDetails').value = '';
+            document.getElementById('companyStatus').value = 'pendente';
+            
+            // Reload companies list
+            loadCompanies();
+            
+            alert('Empresa adicionada com sucesso!');
+            
+            // Notify directors and admin
+            notifyNewCompany(newCompany);
+        }
+        
+        // Notify directors and admin about new company
+        function notifyNewCompany(company) {
+            const senderName = users[currentUser].name;
+            const message = `Nova empresa adicionada: ${company.name} (${company.service}) por ${senderName}. Status: ${company.status === 'concluido' ? 'Concluído' : 'Pendente'}`;
+            
+            // Send to admin
+            if (currentUser !== 'admin_total') {
+                messages['admin_total'].push({
+                    sender: senderName,
+                    content: message,
+                    timestamp: new Date().toISOString()
+                });
+            }
+            
+            // Send to president
+            if (currentUser !== 'presidente') {
+                messages['presidente'].push({
+                    sender: senderName,
+                    content: message,
+                    timestamp: new Date().toISOString()
+                });
+            }
+            
+            // Send to executive
+            if (currentUser !== 'executivo') {
+                messages['executivo'].push({
+                    sender: senderName,
+                    content: message,
+                    timestamp: new Date().toISOString()
+                });
+            }
+            
+            // Send to area director if consultant is not a director
+            if (!users[currentUser].isDirector) {
+                const consultantDept = users[currentUser].department;
+                let directorUsername = '';
+                
+                // Find the director for this department
+                for (const [username, user] of Object.entries(users)) {
+                    if (user.isDirector && user.department === 'diretores') {
+                        if (username === 'dir_' + consultantDept) {
+                            directorUsername = username;
+                            break;
+                        }
+                    }
+                }
+                
+                if (directorUsername && currentUser !== directorUsername) {
+                    messages[directorUsername].push({
+                        sender: senderName,
+                        content: message,
+                        timestamp: new Date().toISOString()
+                    });
+                }
             }
         }
         
@@ -892,26 +1426,30 @@
             }
             
             const senderName = users[currentUser].name;
+            const timestamp = new Date().toISOString();
             
             if (department === 'todos') {
                 // Send to all users
                 for (const user in messages) {
                     messages[user].push({
                         sender: senderName,
-                        content: content
+                        content: content,
+                        timestamp: timestamp
                     });
                 }
             } else if (department === 'presidencia') {
                 // Send to president
                 messages['presidente'].push({
                     sender: senderName,
-                    content: content
+                    content: content,
+                    timestamp: timestamp
                 });
             } else if (department === 'executiva') {
                 // Send to executive
                 messages['executivo'].push({
                     sender: senderName,
-                    content: content
+                    content: content,
+                    timestamp: timestamp
                 });
             } else if (department === 'diretores') {
                 // Send to all directors
@@ -919,7 +1457,8 @@
                     if (user.isDirector) {
                         messages[username].push({
                             sender: senderName,
-                            content: content
+                            content: content,
+                            timestamp: timestamp
                         });
                     }
                 }
@@ -933,7 +1472,8 @@
                         const username = checkbox.value;
                         messages[username].push({
                             sender: senderName,
-                            content: content
+                            content: content,
+                            timestamp: timestamp
                         });
                     });
                 } else {
@@ -942,7 +1482,8 @@
                         if (user.department === department) {
                             messages[username].push({
                                 sender: senderName,
-                                content: content
+                                content: content,
+                                timestamp: timestamp
                             });
                         }
                     }
@@ -953,6 +1494,66 @@
             document.getElementById('messageContent').value = '';
             
             alert('Mensagem(s) enviada(s) com sucesso!');
+        }
+        
+        // Send new message from messages tab
+        function sendNewMessage() {
+            const department = document.getElementById('newMessageDepartment').value;
+            const content = document.getElementById('newMessageContent').value;
+            
+            if (!department || !content) {
+                alert('Por favor, selecione um destinatário e insira o conteúdo da mensagem.');
+                return;
+            }
+            
+            const senderName = users[currentUser].name;
+            const timestamp = new Date().toISOString();
+            
+            if (department === 'presidencia') {
+                // Send to president
+                messages['presidente'].push({
+                    sender: senderName,
+                    content: content,
+                    timestamp: timestamp
+                });
+            } else if (department === 'executiva') {
+                // Send to executive
+                messages['executivo'].push({
+                    sender: senderName,
+                    content: content,
+                    timestamp: timestamp
+                });
+            } else if (department === 'diretores') {
+                // Send to all directors
+                for (const [username, user] of Object.entries(users)) {
+                    if (user.isDirector) {
+                        messages[username].push({
+                            sender: senderName,
+                            content: content,
+                            timestamp: timestamp
+                        });
+                    }
+                }
+            } else {
+                // Send to department
+                for (const [username, user] of Object.entries(users)) {
+                    if (user.department === department) {
+                        messages[username].push({
+                            sender: senderName,
+                            content: content,
+                            timestamp: timestamp
+                        });
+                    }
+                }
+            }
+            
+            // Clear form
+            document.getElementById('newMessageContent').value = '';
+            
+            // Reload messages
+            loadMessages();
+            
+            alert('Mensagem enviada com sucesso!');
         }
         
         // Send director message
@@ -966,6 +1567,7 @@
             }
             
             const senderName = users[currentUser].name;
+            const timestamp = new Date().toISOString();
             
             if (department === 'consultores') {
                 // Send to all consultants
@@ -973,7 +1575,8 @@
                     if (!user.isAdmin && !user.isDirector) {
                         messages[username].push({
                             sender: senderName,
-                            content: content
+                            content: content,
+                            timestamp: timestamp
                         });
                     }
                 }
@@ -981,13 +1584,15 @@
                 // Send to president
                 messages['presidente'].push({
                     sender: senderName,
-                    content: content
+                    content: content,
+                    timestamp: timestamp
                 });
             } else if (department === 'executiva') {
                 // Send to executive
                 messages['executivo'].push({
                     sender: senderName,
-                    content: content
+                    content: content,
+                    timestamp: timestamp
                 });
             } else {
                 // Send to department
@@ -995,7 +1600,8 @@
                     if (user.department === department && !user.isDirector) {
                         messages[username].push({
                             sender: senderName,
-                            content: content
+                            content: content,
+                            timestamp: timestamp
                         });
                     }
                 }
@@ -1018,6 +1624,7 @@
             }
             
             const senderName = users[currentUser].name;
+            const timestamp = new Date().toISOString();
             
             if (department === 'diretores') {
                 // Send to all directors
@@ -1025,7 +1632,8 @@
                     if (user.isDirector) {
                         messages[username].push({
                             sender: senderName,
-                            content: content
+                            content: content,
+                            timestamp: timestamp
                         });
                     }
                 }
@@ -1033,13 +1641,15 @@
                 // Send to president
                 messages['presidente'].push({
                     sender: senderName,
-                    content: content
+                    content: content,
+                    timestamp: timestamp
                 });
             } else if (department === 'executiva') {
                 // Send to executive
                 messages['executivo'].push({
                     sender: senderName,
-                    content: content
+                    content: content,
+                    timestamp: timestamp
                 });
             } else {
                 // Send to department
@@ -1047,7 +1657,8 @@
                     if (user.department === department && !user.isDirector) {
                         messages[username].push({
                             sender: senderName,
-                            content: content
+                            content: content,
+                            timestamp: timestamp
                         });
                     }
                 }
@@ -1061,7 +1672,7 @@
         
         // Initialize the app
         window.onload = function() {
-            initializeSampleTasks();
+            initializeSampleData();
             
             // Add shake animation for errors
             const style = document.createElement('style');
