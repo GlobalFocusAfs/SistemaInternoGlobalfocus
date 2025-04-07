@@ -10,102 +10,174 @@
 </head>
 <body>
     <div class="dashboard-container">
-        <!-- Sidebar -->
-        <div class="sidebar">
+        <aside class="sidebar">
             <div class="sidebar-header">
-                <img src="assets/logo-white.png" alt="GlobalFocus Logo" class="logo">
-                <h2>GlobalFocus</h2>
+                <img src="https://via.placeholder.com/150x50?text=GlobalFocus" alt="GlobalFocus Logo" class="logo">
+                <h2>Sistema Interno</h2>
             </div>
             <div class="user-profile">
-                <img src="assets/user-avatar.jpg" alt="User Avatar" class="avatar">
+                <div class="avatar"><i class="fas fa-user"></i></div>
                 <div class="user-info">
-                    <h4 id="userName">Nome do Usuário</h4>
-                    <p id="userRole">Cargo</p>
+                    <span class="username" id="sidebarUsername">Usuário</span>
+                    <span class="user-role" id="sidebarRole">Cargo</span>
+                    <span class="user-area" id="sidebarArea">Área</span>
                 </div>
             </div>
             <nav class="sidebar-nav">
                 <ul>
-                    <li class="active"><a href="#"><i class="fas fa-home"></i> Dashboard</a></li>
+                    <li class="active"><a href="#dashboard"><i class="fas fa-home"></i> Dashboard</a></li>
                     <li><a href="#messages"><i class="fas fa-envelope"></i> Mensagens</a></li>
                     <li><a href="#reports"><i class="fas fa-chart-bar"></i> Relatórios</a></li>
+                    <li><a href="#settings"><i class="fas fa-cog"></i> Configurações</a></li>
                 </ul>
             </nav>
             <div class="sidebar-footer">
-                <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sair</a>
+                <button id="logoutBtn" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Sair</button>
             </div>
-        </div>
-
-        <!-- Main Content -->
-        <div class="main-content">
+        </aside>
+        <main class="main-content">
             <header class="main-header">
-                <div class="header-left">
-                    <h1 id="areaTitle">Área do Usuário</h1>
-                </div>
-                <div class="header-right">
+                <h1 id="pageTitle">Dashboard</h1>
+                <div class="header-actions">
                     <div class="notification">
                         <i class="fas fa-bell"></i>
-                        <span class="badge" id="notificationCount">0</span>
+                        <span class="badge">3</span>
                     </div>
                     <div class="user-menu">
-                        <img src="assets/user-avatar.jpg" alt="User Avatar" class="avatar-sm">
-                        <span id="userNameSm">Nome</span>
+                        <span id="headerUsername">Usuário</span>
+                        <div class="avatar"><i class="fas fa-user"></i></div>
                     </div>
                 </div>
             </header>
-
-            <div class="content-area">
-                <!-- Mensagens para o Diretor -->
-                <section class="messages-section" id="messagesSection">
-                    <h2>Mensagens para o Diretor</h2>
-                    <div class="messages-container">
-                        <div class="messages-list">
-                            <div class="message-header">
-                                <h3>Conversas</h3>
-                                <button class="btn-new-message" id="newMessageBtn"><i class="fas fa-plus"></i> Nova Mensagem</button>
+            <div class="content-area" id="contentArea">
+                <!-- Conteúdo dinâmico será carregado aqui -->
+                <section class="dashboard-section" id="dashboardSection">
+                    <div class="welcome-banner">
+                        <h2>Bem-vindo, <span id="welcomeUsername">Usuário</span>!</h2>
+                        <p>Você está acessando o sistema interno da GlobalFocus.</p>
+                    </div>
+                    <div class="stats-cards">
+                        <div class="card">
+                            <div class="card-icon blue">
+                                <i class="fas fa-users"></i>
                             </div>
-                            <div class="message-threads" id="messageThreads">
-                                <div class="no-messages">Carregando mensagens...</div>
+                            <div class="card-info">
+                                <h3>Colaboradores</h3>
+                                <p>24</p>
                             </div>
                         </div>
-                        <div class="message-content" id="messageContent">
+                        <div class="card">
+                            <div class="card-icon green">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div class="card-info">
+                                <h3>Mensagens</h3>
+                                <p id="unreadMessages">0</p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-icon orange">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                            <div class="card-info">
+                                <h3>Tarefas</h3>
+                                <p>5</p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-icon purple">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="card-info">
+                                <h3>Desempenho</h3>
+                                <p>87%</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="recent-activity">
+                        <h3>Atividade Recente</h3>
+                        <ul id="recentActivity">
+                            <!-- Atividades serão carregadas aqui -->
+                        </ul>
+                    </div>
+                </section>
+                
+                <section class="messages-section hidden" id="messagesSection">
+                    <div class="messages-header">
+                        <h2>Mensagens</h2>
+                        <button id="newMessageBtn" class="btn-primary">Nova Mensagem</button>
+                    </div>
+                    <div class="messages-container">
+                        <div class="messages-sidebar">
+                            <div class="search-box">
+                                <input type="text" placeholder="Buscar mensagens...">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <ul class="messages-list" id="messagesList">
+                                <!-- Lista de mensagens será carregada aqui -->
+                            </ul>
+                        </div>
+                        <div class="messages-content" id="messagesContent">
                             <div class="no-message-selected">
-                                <i class="fas fa-envelope-open-text"></i>
+                                <i class="fas fa-envelope-open"></i>
                                 <p>Selecione uma mensagem para visualizar</p>
                             </div>
                         </div>
                     </div>
                 </section>
-
-                <!-- Modal de Nova Mensagem -->
-                <div class="modal" id="newMessageModal">
-                    <div class="modal-content">
-                        <span class="close-modal">&times;</span>
-                        <h3>Nova Mensagem</h3>
-                        <form id="newMessageForm">
-                            <div class="form-group">
-                                <label for="messageRecipient">Para:</label>
-                                <select id="messageRecipient" required>
-                                    <option value="">Selecione o diretor</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="messageSubject">Assunto:</label>
-                                <input type="text" id="messageSubject" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="messageBody">Mensagem:</label>
-                                <textarea id="messageBody" rows="5" required></textarea>
-                            </div>
-                            <button type="submit" class="btn-send-message">Enviar Mensagem</button>
-                        </form>
+                
+                <section class="reports-section hidden" id="reportsSection">
+                    <h2>Relatórios</h2>
+                    <div class="reports-grid">
+                        <!-- Conteúdo de relatórios será carregado aqui -->
                     </div>
+                </section>
+                
+                <section class="settings-section hidden" id="settingsSection">
+                    <h2>Configurações</h2>
+                    <div class="settings-form">
+                        <!-- Formulário de configurações será carregado aqui -->
+                    </div>
+                </section>
+            </div>
+        </main>
+        
+        <!-- Modal Nova Mensagem -->
+        <div class="modal hidden" id="newMessageModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Nova Mensagem</h3>
+                    <button class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="newMessageForm">
+                        <div class="form-group">
+                            <label for="recipient">Destinatário</label>
+                            <select id="recipient" required>
+                                <!-- Opções serão preenchidas dinamicamente -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="messageSubject">Assunto</label>
+                            <input type="text" id="messageSubject" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="messageContent">Mensagem</label>
+                            <textarea id="messageContent" rows="5" required></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn-secondary close-modal">Cancelar</button>
+                            <button type="submit" class="btn-primary">Enviar</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
-    <div class="loading-indicator" id="loadingIndicator"></div>
+    
     <script src="js/auth.js"></script>
     <script src="js/github.js"></script>
+    <script src="js/messages.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>
