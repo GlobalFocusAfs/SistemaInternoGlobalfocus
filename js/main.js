@@ -1,4 +1,4 @@
-// Dados de exemplo (seriam substituídos pelos dados do GitHub)
+// Dados de usuários
 const users = {
     "consultores": [
         { id: 1, nome: "Consultor 1 GP", email: "consultor1.gp@globalfocus.com", senha: "senha123", area: "gestao-pessoas" },
@@ -30,6 +30,7 @@ const users = {
     ]
 };
 
+// Mapeamento de áreas
 const areas = {
     "gestao-pessoas": "Gestão de Pessoas",
     "marketing": "Marketing",
@@ -39,96 +40,65 @@ const areas = {
     "administrativa": "Administrativa"
 };
 
-// Simulação de mensagens (seriam armazenadas no GitHub)
-let messages = [
-    {
-        id: 1,
-        senderId: 1,
-        recipientId: 101,
-        subject: "Relatório mensal de desempenho",
-        body: "Prezado Diretor,\n\nSegue em anexo o relatório mensal de desempenho da equipe.\n\nAtenciosamente,\nConsultor 1 GP",
-        date: "2023-06-15T10:30:00",
-        read: false,
-        area: "gestao-pessoas"
-    },
-    {
-        id: 2,
-        senderId: 4,
-        recipientId: 102,
-        subject: "Campanha de verão",
-        body: "Olá Diretor,\n\nGostaria de discutir as estratégias para a campanha de verão. Quando estaria disponível?\n\nAbraços,\nConsultor 1 MK",
-        date: "2023-06-14T14:45:00",
-        read: true,
-        area: "marketing"
-    },
-    {
-        id: 3,
-        senderId: 7,
-        recipientId: 103,
-        subject: "Orçamento Q3",
-        body: "Caro Diretor,\n\nO orçamento para o terceiro trimestre está pronto para sua revisão.\n\nSaudações,\nConsultor 1 FN",
-        date: "2023-06-13T09:15:00",
-        read: false,
-        area: "financas"
-    }
-];
-
 // Verifica se o usuário está logado
-document.addEventListener('DOMContentLoaded', function() {
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+document.addEventListener('DOMContentLoaded', async function() {
+    // Tornar users global para acesso pelo github.js
+    window.users = users;
     
     if (window.location.pathname.includes('dashboard.html')) {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        
         if (!currentUser) {
             window.location.href = 'index.html';
-        } else {
-            // Configura o dashboard com os dados do usuário
-            setupDashboard(currentUser);
-            
-            // Carrega as mensagens
-            loadMessages(currentUser);
-            
-            // Configura os eventos
-            setupEventListeners(currentUser);
+            return;
         }
-    } else if (window.location.pathname.includes('index.html') && currentUser) {
-        window.location.href = 'dashboard.html';
+        
+        // Configura o dashboard
+        setupDashboard(currentUser);
+        
+        // Carrega as mensagens do GitHub
+        await loadMessages(currentUser);
+        
+        // Configura os eventos
+        setupEventListeners(currentUser);
+    } else if (window.location.pathname.includes('index.html')) {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (currentUser) {
+            window.location.href = 'dashboard.html';
+        }
+        
+        // Configura o evento de login
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) {
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                
+                // Verifica se é um consultor
+                let user = users.consultores.find(u => u.email === email && u.senha === password);
+                
+                // Se não for consultor, verifica se é diretor
+                if (!user) {
+                    user = users.diretores.find(u => u.email === email && u.senha === password);
+                }
+                
+                if (user) {
+                    localStorage.setItem('currentUser', JSON.stringify(user));
+                    window.location.href = 'dashboard.html';
+                } else {
+                    alert('E-mail ou senha incorretos!');
+                }
+            });
+        }
     }
 });
 
-// Login
-const loginForm = document.getElementById('loginForm');
-if (loginForm) {
-    loginForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        
-        // Verifica se é um consultor
-        let user = users.consultores.find(u => u.email === email && u.senha === password);
-        
-        // Se não for consultor, verifica se é diretor
-        if (!user) {
-            user = users.diretores.find(u => u.email === email && u.senha === password);
-        }
-        
-        if (user) {
-            // Salva o usuário no localStorage
-            localStorage.setItem('currentUser', JSON.stringify(user));
-            
-            // Redireciona para o dashboard
-            window.location.href = 'dashboard.html';
-        } else {
-            alert('E-mail ou senha incorretos!');
-        }
-    });
-}
-
 // Configura o dashboard
 function setupDashboard(user) {
-    // Define o nome e cargo do usuário
     document.getElementById('userName').textContent = user.nome;
-    document.getElementById('userNameSm').textContent = user.nome.split(' ')[0]; // Primeiro nome
+    document.getElementById('userNameSm').textContent = user.nome.split(' ')[0];
     
     const isDirector = users.diretores.some(d => d.id === user.id);
     const role = isDirector ? 'Diretor' : 'Consultor';
@@ -147,80 +117,74 @@ function setupDashboard(user) {
 }
 
 // Carrega as mensagens
-function loadMessages(user) {
+async function loadMessages(user) {
     const isDirector = users.diretores.some(d => d.id === user.id);
     const messageThreads = document.getElementById('messageThreads');
     
-    // Limpa as threads existentes
-    messageThreads.innerHTML = '';
+    // Mostra estado de carregamento
+    messageThreads.innerHTML = '<div class="no-messages">Carregando mensagens...</div>';
     
-    // Filtra as mensagens relevantes para o usuário
-    let userMessages = [];
+    // Carrega dados do GitHub
+    await github.loadData();
+    const messages = github.getMessages();
     
-    if (isDirector) {
-        // Diretor vê mensagens enviadas para ele
-        userMessages = messages.filter(m => m.recipientId === user.id);
-    } else {
-        // Consultor vê mensagens que ele enviou
-        userMessages = messages.filter(m => m.senderId === user.id);
-    }
+    // Filtra as mensagens relevantes
+    let userMessages = isDirector ? 
+        messages.filter(m => m.recipientId === user.id) : 
+        messages.filter(m => m.senderId === user.id);
     
     // Ordena por data (mais recente primeiro)
     userMessages.sort((a, b) => new Date(b.date) - new Date(a.date));
     
-    // Adiciona as threads
+    // Atualiza a UI
+    messageThreads.innerHTML = '';
+    
     if (userMessages.length === 0) {
         messageThreads.innerHTML = '<div class="no-messages">Nenhuma mensagem encontrada</div>';
-    } else {
-        userMessages.forEach(msg => {
-            const recipient = isDirector ? 
-                users.consultores.find(c => c.id === msg.senderId) : 
-                users.diretores.find(d => d.id === msg.recipientId);
-            
-            const thread = document.createElement('div');
-            thread.className = 'message-thread';
-            thread.dataset.messageId = msg.id;
-            
-            thread.innerHTML = `
-                <div class="thread-sender">${isDirector ? recipient.nome : `Para: ${recipient.nome}`}</div>
-                <div class="thread-subject">${msg.subject}</div>
-                <div class="thread-preview">${msg.body.substring(0, 50)}...</div>
-                <div class="thread-date">${formatDate(msg.date)}</div>
-            `;
-            
-            messageThreads.appendChild(thread);
-            
-            // Adiciona evento de clique para exibir a mensagem
-            thread.addEventListener('click', function() {
-                showMessageDetail(msg, user);
-                
-                // Marca como lida se for diretor
-                if (isDirector && !msg.read) {
-                    msg.read = true;
-                    // Aqui você chamaria a função para atualizar no GitHub
-                }
-                
-                // Remove a classe active de todas as threads
-                document.querySelectorAll('.message-thread').forEach(t => {
-                    t.classList.remove('active');
-                });
-                
-                // Adiciona a classe active à thread clicada
-                this.classList.add('active');
-            });
-        });
+        return;
     }
     
-    // Se for diretor, configura o modal de nova mensagem
-    if (!isDirector) {
-        setupNewMessageModal(user);
-    } else {
-        document.getElementById('newMessageBtn').style.display = 'none';
+    userMessages.forEach(msg => {
+        const recipient = isDirector ? 
+            users.consultores.find(c => c.id === msg.senderId) : 
+            users.diretores.find(d => d.id === msg.recipientId);
+        
+        const thread = document.createElement('div');
+        thread.className = 'message-thread';
+        thread.dataset.messageId = msg.id;
+        
+        thread.innerHTML = `
+            <div class="thread-sender">${isDirector ? recipient.nome : `Para: ${recipient.nome}`}</div>
+            <div class="thread-subject">${msg.subject}</div>
+            <div class="thread-preview">${msg.body.substring(0, 50)}...</div>
+            <div class="thread-date">${formatDate(msg.date)}</div>
+        `;
+        
+        messageThreads.appendChild(thread);
+        
+        // Evento de clique para exibir a mensagem
+        thread.addEventListener('click', async function() {
+            await showMessageDetail(msg, user);
+            
+            // Remove a classe active de todas as threads
+            document.querySelectorAll('.message-thread').forEach(t => {
+                t.classList.remove('active');
+            });
+            
+            // Adiciona a classe active à thread clicada
+            this.classList.add('active');
+        });
+    });
+    
+    // Atualiza contador de notificações (para diretores)
+    if (isDirector) {
+        const unreadCount = messages.filter(m => m.recipientId === user.id && !m.read).length;
+        document.getElementById('notificationCount').textContent = unreadCount;
     }
 }
 
 // Exibe o detalhe da mensagem
-function showMessageDetail(msg, user) {
+async function showMessageDetail(msg, user) {
     const isDirector = users.diretores.some(d => d.id === user.id);
     const messageContent = document.getElementById('messageContent');
     
@@ -253,12 +217,12 @@ function showMessageDetail(msg, user) {
     // Configura o botão de resposta (se for diretor)
     if (isDirector) {
         const replyBtn = document.querySelector('.btn-reply');
-        replyBtn.addEventListener('click', function() {
+        replyBtn.addEventListener('click', async function() {
             const replyText = document.querySelector('.reply-textarea').value;
             if (replyText.trim()) {
                 // Cria uma nova mensagem (resposta)
                 const newMsg = {
-                    id: messages.length + 1,
+                    id: Date.now(),
                     senderId: user.id,
                     recipientId: msg.senderId,
                     subject: `Re: ${msg.subject}`,
@@ -268,18 +232,21 @@ function showMessageDetail(msg, user) {
                     area: user.area
                 };
                 
-                // Adiciona às mensagens
-                messages.push(newMsg);
+                // Adiciona às mensagens locais
+                const currentMessages = github.getMessages();
+                currentMessages.push(newMsg);
+                github.setMessages(currentMessages);
                 
-                // Aqui você chamaria a função para salvar no GitHub
+                // Salva no GitHub
+                const success = await github.saveData();
                 
-                // Recarrega as mensagens
-                loadMessages(user);
-                
-                // Mostra a mensagem enviada
-                showMessageDetail(newMsg, user);
-                
-                alert('Resposta enviada com sucesso!');
+                if (success) {
+                    // Recarrega as mensagens
+                    await loadMessages(user);
+                    
+                    // Mostra a mensagem enviada
+                    await showMessageDetail(newMsg, user);
+                }
             }
         });
     }
@@ -291,6 +258,13 @@ function setupNewMessageModal(user) {
     const newMessageBtn = document.getElementById('newMessageBtn');
     const closeModal = document.querySelector('.close-modal');
     const messageRecipient = document.getElementById('messageRecipient');
+    
+    // Somente consultores podem enviar mensagens
+    const isDirector = users.diretores.some(d => d.id === user.id);
+    if (isDirector) {
+        newMessageBtn.style.display = 'none';
+        return;
+    }
     
     // Preenche o select com o diretor da área do usuário
     const director = users.diretores.find(d => d.area === user.area);
@@ -319,7 +293,7 @@ function setupNewMessageModal(user) {
     
     // Envia a nova mensagem
     const newMessageForm = document.getElementById('newMessageForm');
-    newMessageForm.addEventListener('submit', function(e) {
+    newMessageForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
         const subject = document.getElementById('messageSubject').value;
@@ -328,7 +302,7 @@ function setupNewMessageModal(user) {
         
         // Cria a nova mensagem
         const newMsg = {
-            id: messages.length + 1,
+            id: Date.now(),
             senderId: user.id,
             recipientId: recipientId,
             subject: subject,
@@ -338,24 +312,27 @@ function setupNewMessageModal(user) {
             area: user.area
         };
         
-        // Adiciona às mensagens
-        messages.push(newMsg);
+        // Adiciona às mensagens locais
+        const currentMessages = github.getMessages();
+        currentMessages.push(newMsg);
+        github.setMessages(currentMessages);
         
-        // Aqui você chamaria a função para salvar no GitHub
+        // Salva no GitHub
+        const success = await github.saveData();
         
-        // Fecha o modal
-        modal.style.display = 'none';
-        
-        // Recarrega as mensagens
-        loadMessages(user);
-        
-        // Mostra a mensagem enviada
-        showMessageDetail(newMsg, user);
-        
-        // Reseta o formulário
-        newMessageForm.reset();
-        
-        alert('Mensagem enviada com sucesso!');
+        if (success) {
+            // Fecha o modal
+            modal.style.display = 'none';
+            
+            // Recarrega as mensagens
+            await loadMessages(user);
+            
+            // Mostra a mensagem enviada
+            await showMessageDetail(newMsg, user);
+            
+            // Reseta o formulário
+            newMessageForm.reset();
+        }
     });
 }
 
@@ -370,6 +347,9 @@ function setupEventListeners(user) {
             window.location.href = 'index.html';
         });
     }
+    
+    // Configura o modal de nova mensagem
+    setupNewMessageModal(user);
 }
 
 // Formata a data
