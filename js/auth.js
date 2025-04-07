@@ -1,105 +1,115 @@
-// Dados de usuários (simulados)
+// Dados de usuários (em um sistema real, isso viria de um backend seguro)
 const users = {
     // Gestão de Pessoas
-    'gp_consultor1': { password: 'consultor123', area: 'gestao', role: 'consultor', name: 'Consultor GP 1' },
-    'gp_consultor2': { password: 'consultor123', area: 'gestao', role: 'consultor', name: 'Consultor GP 2' },
-    'gp_consultor3': { password: 'consultor123', area: 'gestao', role: 'consultor', name: 'Consultor GP 3' },
-    'gp_diretor': { password: 'diretor123', area: 'gestao', role: 'diretor', name: 'Diretor GP' },
+    'gp_consultor1': { password: 'consultor123', role: 'consultor', area: 'people', name: 'Consultor GP 1' },
+    'gp_consultor2': { password: 'consultor123', role: 'consultor', area: 'people', name: 'Consultor GP 2' },
+    'gp_consultor3': { password: 'consultor123', role: 'consultor', area: 'people', name: 'Consultor GP 3' },
+    'gp_diretor': { password: 'diretor123', role: 'diretor', area: 'people', name: 'Diretor GP' },
     
     // Marketing
-    'mk_consultor1': { password: 'consultor123', area: 'marketing', role: 'consultor', name: 'Consultor MK 1' },
-    'mk_consultor2': { password: 'consultor123', area: 'marketing', role: 'consultor', name: 'Consultor MK 2' },
-    'mk_consultor3': { password: 'consultor123', area: 'marketing', role: 'consultor', name: 'Consultor MK 3' },
-    'mk_diretor': { password: 'diretor123', area: 'marketing', role: 'diretor', name: 'Diretor MK' },
+    'mk_consultor1': { password: 'consultor123', role: 'consultor', area: 'marketing', name: 'Consultor MK 1' },
+    'mk_consultor2': { password: 'consultor123', role: 'consultor', area: 'marketing', name: 'Consultor MK 2' },
+    'mk_consultor3': { password: 'consultor123', role: 'consultor', area: 'marketing', name: 'Consultor MK 3' },
+    'mk_diretor': { password: 'diretor123', role: 'diretor', area: 'marketing', name: 'Diretor MK' },
     
     // Finanças
-    'fn_consultor1': { password: 'consultor123', area: 'financas', role: 'consultor', name: 'Consultor FN 1' },
-    'fn_consultor2': { password: 'consultor123', area: 'financas', role: 'consultor', name: 'Consultor FN 2' },
-    'fn_consultor3': { password: 'consultor123', area: 'financas', role: 'consultor', name: 'Consultor FN 3' },
-    'fn_diretor': { password: 'diretor123', area: 'financas', role: 'diretor', name: 'Diretor FN' },
+    'fn_consultor1': { password: 'consultor123', role: 'consultor', area: 'finance', name: 'Consultor FN 1' },
+    'fn_consultor2': { password: 'consultor123', role: 'consultor', area: 'finance', name: 'Consultor FN 2' },
+    'fn_consultor3': { password: 'consultor123', role: 'consultor', area: 'finance', name: 'Consultor FN 3' },
+    'fn_diretor': { password: 'diretor123', role: 'diretor', area: 'finance', name: 'Diretor FN' },
     
     // Logística
-    'lg_consultor1': { password: 'consultor123', area: 'logistica', role: 'consultor', name: 'Consultor LG 1' },
-    'lg_consultor2': { password: 'consultor123', area: 'logistica', role: 'consultor', name: 'Consultor LG 2' },
-    'lg_consultor3': { password: 'consultor123', area: 'logistica', role: 'consultor', name: 'Consultor LG 3' },
-    'lg_diretor': { password: 'diretor123', area: 'logistica', role: 'diretor', name: 'Diretor LG' },
+    'lg_consultor1': { password: 'consultor123', role: 'consultor', area: 'logistics', name: 'Consultor LG 1' },
+    'lg_consultor2': { password: 'consultor123', role: 'consultor', area: 'logistics', name: 'Consultor LG 2' },
+    'lg_consultor3': { password: 'consultor123', role: 'consultor', area: 'logistics', name: 'Consultor LG 3' },
+    'lg_diretor': { password: 'diretor123', role: 'diretor', area: 'logistics', name: 'Diretor LG' },
     
     // Novos Negócios
-    'nn_consultor1': { password: 'consultor123', area: 'negocios', role: 'consultor', name: 'Consultor NN 1' },
-    'nn_consultor2': { password: 'consultor123', area: 'negocios', role: 'consultor', name: 'Consultor NN 2' },
-    'nn_consultor3': { password: 'consultor123', area: 'negocios', role: 'consultor', name: 'Consultor NN 3' },
-    'nn_diretor': { password: 'diretor123', area: 'negocios', role: 'diretor', name: 'Diretor NN' },
+    'nb_consultor1': { password: 'consultor123', role: 'consultor', area: 'business', name: 'Consultor NB 1' },
+    'nb_consultor2': { password: 'consultor123', role: 'consultor', area: 'business', name: 'Consultor NB 2' },
+    'nb_consultor3': { password: 'consultor123', role: 'consultor', area: 'business', name: 'Consultor NB 3' },
+    'nb_diretor': { password: 'diretor123', role: 'diretor', area: 'business', name: 'Diretor NB' },
     
     // Administrativa
-    'adm_consultor1': { password: 'consultor123', area: 'administrativa', role: 'consultor', name: 'Consultor ADM 1' },
-    'adm_consultor2': { password: 'consultor123', area: 'administrativa', role: 'consultor', name: 'Consultor ADM 2' },
-    'adm_consultor3': { password: 'consultor123', area: 'administrativa', role: 'consultor', name: 'Consultor ADM 3' },
-    'adm_diretor': { password: 'diretor123', area: 'administrativa', role: 'diretor', name: 'Diretor ADM' },
+    'ad_consultor1': { password: 'consultor123', role: 'consultor', area: 'admin', name: 'Consultor AD 1' },
+    'ad_consultor2': { password: 'consultor123', role: 'consultor', area: 'admin', name: 'Consultor AD 2' },
+    'ad_consultor3': { password: 'consultor123', role: 'consultor', area: 'admin', name: 'Consultor AD 3' },
+    'ad_diretor': { password: 'diretor123', role: 'diretor', area: 'admin', name: 'Diretor AD' },
     
-    // Admin Global
-    'GlobalFocusAfs': { password: 'admin123', area: 'administrativa', role: 'admin', name: 'Administrador GlobalFocus' }
+    // Usuário especial
+    'GlobalFocusAfs': { password: 'admin123', role: 'admin', area: 'all', name: 'Administrador Global' }
 };
 
-// Mapeamento de áreas para valores do select
-const areaValues = {
-    'Gestão de Pessoas': 'gestao',
-    'Marketing': 'marketing',
-    'Finanças': 'financas',
-    'Logística': 'logistica',
-    'Novos Negócios': 'negocios',
-    'Administrativa': 'administrativa'
+// Mapeamento de áreas para nomes
+const areaNames = {
+    'people': 'Gestão de Pessoas',
+    'marketing': 'Marketing',
+    'finance': 'Finanças',
+    'logistics': 'Logística',
+    'business': 'Novos Negócios',
+    'admin': 'Administrativa',
+    'all': 'Todas as Áreas'
 };
 
-// Função de login corrigida
-function login(username, password, area) {
-    // Verifica se é o admin global
-    if(username === 'GlobalFocusAfs') {
-        const user = users['GlobalFocusAfs'];
-        if(user && user.password === password) {
-            return user;
-        }
-        return null;
+// Verifica se o usuário está logado
+function checkAuth() {
+    const currentUser = localStorage.getItem('currentUser');
+    if (!currentUser && window.location.pathname.endsWith('dashboard.html')) {
+        window.location.href = 'index.html';
+    } else if (currentUser && window.location.pathname.endsWith('index.html')) {
+        window.location.href = 'dashboard.html';
     }
-
-    // Para outros usuários
-    const areaPrefix = areaValues[area] || area;
-    const userKey = `${areaPrefix}_${username.toLowerCase()}`;
-    const user = users[userKey];
-    
-    if(user && user.password === password) {
-        return user;
-    }
-    
-    return null;
 }
 
-// Evento de login corrigido
+// Login
 document.addEventListener('DOMContentLoaded', function() {
     if (document.getElementById('loginForm')) {
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
+        const loginForm = document.getElementById('loginForm');
+        
+        loginForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const username = document.getElementById('username').value.trim();
+            const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            const areaSelect = document.getElementById('area');
-            const area = areaSelect.options[areaSelect.selectedIndex].text;
             
-            const user = login(username, password, area);
-            
-            if (user) {
+            if (users[username] && users[username].password === password) {
                 localStorage.setItem('currentUser', JSON.stringify({
                     username: username,
-                    name: user.name,
-                    area: user.area,
-                    role: user.role
+                    role: users[username].role,
+                    area: users[username].area,
+                    name: users[username].name
                 }));
                 window.location.href = 'dashboard.html';
             } else {
-                alert('Usuário, senha ou área incorretos. Tente novamente.');
-                console.log('Falha no login:', { username, password, area });
+                alert('Usuário ou senha incorretos!');
             }
         });
     }
     
-    // Restante do código permanece o mesmo...
+    // Logout
+    if (document.getElementById('logoutBtn')) {
+        document.getElementById('logoutBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            localStorage.removeItem('currentUser');
+            window.location.href = 'index.html';
+        });
+    }
+    
+    // Carrega informações do usuário no dashboard
+    if (document.getElementById('currentUsername')) {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        
+        if (currentUser) {
+            document.getElementById('currentUsername').textContent = currentUser.name;
+            document.getElementById('currentRole').textContent = currentUser.role === 'consultor' ? 'Consultor' : 
+                                                               currentUser.role === 'diretor' ? 'Diretor' : 'Administrador';
+            
+            document.getElementById('welcomeUsername').textContent = currentUser.name;
+            document.getElementById('welcomeRole').textContent = currentUser.role === 'consultor' ? 'Consultor' : 
+                                                               currentUser.role === 'diretor' ? 'Diretor' : 'Administrador';
+            document.getElementById('welcomeArea').textContent = areaNames[currentUser.area];
+        }
+    }
+    
+    checkAuth();
 });
