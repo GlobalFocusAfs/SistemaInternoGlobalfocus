@@ -5,11 +5,34 @@ const GITHUB_TOKEN = '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';
 
 // Variável para controle de carregamento
 let isLoading = false;
+let messages = [];
+
+// Função para mostrar alertas
+function showAlert(message, type = 'info') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `github-alert github-alert-${type}`;
+    alertDiv.textContent = message;
+    
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
+
+// Função para mostrar/ocultar loading
+function toggleLoading(show) {
+    const loader = document.getElementById('loadingIndicator');
+    if (loader) {
+        loader.style.display = show ? 'block' : 'none';
+    }
+}
 
 // Função para carregar dados do GitHub
 async function loadDataFromGitHub() {
-    if (isLoading) return;
+    if (isLoading) return { messages: [] };
     isLoading = true;
+    toggleLoading(true);
     
     try {
         console.log('Carregando dados do GitHub...');
@@ -21,26 +44,28 @@ async function loadDataFromGitHub() {
         });
         
         if (!response.ok) {
-            throw new Error(`Erro ao carregar dados do GitHub: ${response.status}`);
+            if (response.status === 404) {
+                console.log('Arquivo não encontrado, criando novo...');
+                const created = await saveDataToGitHub();
+                return created ? { messages: [] } : { messages: [] };
+            }
+            throw new Error(`Erro ao carregar dados: ${response.status}`);
         }
         
         const data = await response.json();
-        const content = JSON.parse(atob(data.content));
+        const content = JSON.parse(decodeURIComponent(escape(atob(data.content))));
         
-        // Atualiza os dados locais
-        if (content.messages) {
-            messages = content.messages;
-            console.log('Mensagens carregadas:', messages.length);
-        }
+        messages = content.messages || [];
+        console.log('Mensagens carregadas:', messages.length);
         
-        console.log('Dados carregados do GitHub com sucesso!');
         return content;
     } catch (error) {
         console.error('Erro ao carregar dados:', error);
         showAlert('Erro ao carregar dados. Usando dados locais.', 'error');
-        return null;
+        return { messages: [] };
     } finally {
         isLoading = false;
+        toggleLoading(false);
     }
 }
 
@@ -48,11 +73,12 @@ async function loadDataFromGitHub() {
 async function saveDataToGitHub() {
     if (isLoading) return false;
     isLoading = true;
+    toggleLoading(true);
     
     try {
         console.log('Salvando dados no GitHub...');
         
-        // Primeiro, obtemos o SHA do arquivo atual para atualizá-lo
+        // Obtém SHA do arquivo atual
         let sha = '';
         try {
             const getResponse = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`, {
@@ -72,7 +98,7 @@ async function saveDataToGitHub() {
         
         // Prepara os dados para salvar
         const dataToSave = {
-            users: users,
+            users: window.users || {},
             messages: messages,
             lastUpdated: new Date().toISOString()
         };
@@ -87,7 +113,7 @@ async function saveDataToGitHub() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                message: `Atualização do sistema GlobalFocus - ${new Date().toLocaleString()}`,
+                message: `Atualização do sistema GlobalFocus - ${new Date().toLocaleString('pt-BR')}`,
                 content: content,
                 sha: sha || undefined
             })
@@ -95,7 +121,7 @@ async function saveDataToGitHub() {
         
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.message || 'Erro ao salvar dados no GitHub');
+            throw new Error(errorData.message || 'Erro ao salvar dados');
         }
         
         console.log('Dados salvos no GitHub com sucesso!');
@@ -107,37 +133,14 @@ async function saveDataToGitHub() {
         return false;
     } finally {
         isLoading = false;
+        toggleLoading(false);
     }
 }
 
-// Mostrar alerta na UI
-function showAlert(message, type = 'info') {
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `github-alert github-alert-${type}`;
-    alertDiv.textContent = message;
-    
-    document.body.appendChild(alertDiv);
-    
-    setTimeout(() => {
-        alertDiv.remove();
-    }, 5000);
-}
-
-// Carrega os dados do GitHub quando a página é carregada
-document.addEventListener('DOMContentLoaded', async function() {
-    if (window.location.pathname.includes('dashboard.html')) {
-        await loadDataFromGitHub();
-        
-        // Atualiza a interface com os dados carregados
-        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        if (currentUser) {
-            loadMessages(currentUser);
-        }
-    }
-});
-
-// Exportar funções para uso em outros arquivos
+// Exportar funções para uso global
 window.github = {
     loadData: loadDataFromGitHub,
-    saveData: saveDataToGitHub
+    saveData: saveDataToGitHub,
+    getMessages: () => messages,
+    setMessages: (newMessages) => { messages = newMessages; }
 };
