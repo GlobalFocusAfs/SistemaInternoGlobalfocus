@@ -21,7 +21,7 @@ function initLoginForm() {
         const password = document.getElementById('password').value;
         
         try {
-            const db = await GitHubService.loadDatabase();
+            const db = await loadDatabase();
             
             if (db.users[username] && db.users[username].password === password) {
                 currentUser = db.users[username];
@@ -36,21 +36,34 @@ function initLoginForm() {
     });
 }
 
-// Navegação
+// Controle de Painéis (FUNÇÕES CRÍTICAS ALTERADAS)
+function hideAllPanels() {
+    document.querySelectorAll('.panel').forEach(panel => {
+        panel.classList.remove('active');
+    });
+}
+
 function showUserDashboard() {
     hideAllPanels();
     
     if (currentUser.role === 'consultor') {
         document.getElementById('consultor-name').textContent = currentUser.name;
         document.getElementById('consultor-title').textContent = `Área do Consultor - ${currentUser.area}`;
-        document.getElementById('consultor-dashboard').classList.remove('hidden');
+        document.getElementById('consultor-dashboard').classList.add('active');
         loadConsultorMessages();
     } else if (currentUser.role === 'diretor') {
         document.getElementById('diretor-name').textContent = currentUser.name;
         document.getElementById('diretor-title').textContent = `Área do Diretor - ${currentUser.area}`;
-        document.getElementById('diretor-dashboard').classList.remove('hidden');
+        document.getElementById('diretor-dashboard').classList.add('active');
         loadDiretorMessages();
     }
+}
+
+function logout() {
+    currentUser = null;
+    hideAllPanels();
+    document.getElementById('login-container').classList.add('active');
+    document.getElementById('login-form').reset();
 }
 
 // Funções de Mensagens
@@ -69,7 +82,7 @@ async function sendMessage() {
             area: currentUser.area
         };
 
-        await GitHubService.saveMessage(message);
+        await saveMessage(message);
         document.getElementById('consultor-message').value = '';
         showMessage('message-status', 'Mensagem enviada com sucesso!', 'success');
         loadConsultorMessages();
@@ -80,7 +93,7 @@ async function sendMessage() {
 
 async function loadConsultorMessages() {
     try {
-        const messages = await GitHubService.getMessagesByArea(currentUser.area);
+        const messages = await getMessagesByArea(currentUser.area);
         displayMessages('consultor-messages', messages);
     } catch (error) {
         showMessage('consultor-messages', `Erro ao carregar mensagens: ${error.message}`, 'error');
@@ -89,14 +102,14 @@ async function loadConsultorMessages() {
 
 async function loadDiretorMessages() {
     try {
-        const messages = await GitHubService.getMessagesByArea(currentUser.area);
+        const messages = await getMessagesByArea(currentUser.area);
         displayMessages('diretor-messages', messages);
     } catch (error) {
         showMessage('diretor-messages', `Erro ao carregar mensagens: ${error.message}`, 'error');
     }
 }
 
-// Utilitários
+// Funções Auxiliares
 function displayMessages(containerId, messages) {
     const container = document.getElementById(containerId);
     container.innerHTML = '';
@@ -120,12 +133,6 @@ function displayMessages(containerId, messages) {
     });
 }
 
-function hideAllPanels() {
-    document.querySelectorAll('.panel').forEach(panel => {
-        panel.classList.add('hidden');
-    });
-}
-
 function showMessage(elementId, text, type) {
     const element = document.getElementById(elementId);
     element.textContent = text;
@@ -133,9 +140,29 @@ function showMessage(elementId, text, type) {
     setTimeout(() => element.textContent = '', 5000);
 }
 
-function logout() {
-    currentUser = null;
-    hideAllPanels();
-    document.getElementById('login-container').classList.remove('hidden');
-    document.getElementById('login-form').reset();
+// Simulação de Banco de Dados (substitua por chamadas reais à API)
+async function loadDatabase() {
+    return {
+        users: {
+            'financeiro_diretor': { password: 'fin123', name: 'Diretor Financeiro', role: 'diretor', area: 'Financeiro' },
+            'financeiro_consultor1': { password: 'fin1', name: 'Consultor 1 Financeiro', role: 'consultor', area: 'Financeiro' }
+            // Adicione todos os outros usuários aqui
+        },
+        messages: {
+            'Financeiro': [],
+            'Marketing': []
+            // Adicione outras áreas aqui
+        }
+    };
+}
+
+async function saveMessage(message) {
+    // Implemente a lógica real de salvamento aqui
+    console.log("Mensagem salva:", message);
+    return true;
+}
+
+async function getMessagesByArea(area) {
+    // Implemente a lógica real de carregamento aqui
+    return [];
 }
