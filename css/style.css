@@ -24,7 +24,6 @@ body {
     color: var(--dark-color);
 }
 
-/* Login Page Styles */
 .login-container {
     display: flex;
     flex-direction: column;
@@ -118,7 +117,6 @@ body {
     text-decoration: underline;
 }
 
-/* Dashboard Styles */
 .dashboard-container {
     display: flex;
     min-height: 100vh;
@@ -347,7 +345,6 @@ body {
     font-size: 0.9rem;
 }
 
-/* Messages Section */
 .messages-section {
     background-color: var(--white-color);
     border-radius: 10px;
@@ -446,6 +443,12 @@ body {
     margin-top: 0.25rem;
 }
 
+.no-messages {
+    padding: 2rem;
+    text-align: center;
+    color: var(--gray-color);
+}
+
 .message-content {
     flex: 1;
     display: flex;
@@ -529,7 +532,6 @@ body {
     background-color: var(--secondary-color);
 }
 
-/* Modal Styles */
 .modal {
     display: none;
     position: fixed;
@@ -604,7 +606,69 @@ body {
     background-color: var(--secondary-color);
 }
 
-/* Responsive Styles */
+.github-alert {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 5px;
+    color: white;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 9999;
+    animation: slideIn 0.3s ease-out;
+}
+
+.github-alert-success {
+    background-color: #28a745;
+}
+
+.github-alert-error {
+    background-color: #dc3545;
+}
+
+.github-alert-info {
+    background-color: #17a2b8;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.loading-indicator {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: var(--primary-color);
+    z-index: 9998;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% {
+        width: 0%;
+        left: 0;
+    }
+    50% {
+        width: 100%;
+        left: 0;
+    }
+    100% {
+        width: 0%;
+        left: 100%;
+    }
+}
+
 @media (max-width: 992px) {
     .sidebar {
         width: 250px;
