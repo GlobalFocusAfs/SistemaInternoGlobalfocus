@@ -8,7 +8,7 @@ async function fetchData() {
   const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${DATA_FILE_PATH}`;
   const response = await fetch(url, {
     headers: {
-      "Authorization": `token ${GITHUB_TOKEN}`,
+      "Authorization": `token ${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}`,
       "Accept": "application/vnd.github.v3+json"
     }
   });
@@ -22,7 +22,7 @@ async function saveData(newData) {
   const response = await fetch(url, {
     method: "PUT",
     headers: {
-      "Authorization": `token ${GITHUB_TOKEN}`,
+      "Authorization": `token ${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}`,
       "Accept": "application/vnd.github.v3+json"
     },
     body: JSON.stringify({
