@@ -10,7 +10,6 @@
 </head>
 <body>
     <div class="dashboard-container">
-        <!-- Sidebar -->
         <div class="sidebar">
             <div class="sidebar-header">
                 <img src="assets/logo-white.png" alt="GlobalFocus Logo" class="logo">
@@ -29,7 +28,6 @@
                     <li><a href="#messages"><i class="fas fa-envelope"></i> Mensagens</a></li>
                     <li><a href="#reports"><i class="fas fa-chart-bar"></i> Relatórios</a></li>
                     <li><a href="#documents"><i class="fas fa-file-alt"></i> Documentos</a></li>
-                    <li><a href="#settings"><i class="fas fa-cog"></i> Configurações</a></li>
                 </ul>
             </nav>
             <div class="sidebar-footer">
@@ -37,7 +35,6 @@
             </div>
         </div>
 
-        <!-- Main Content -->
         <div class="main-content">
             <header class="main-header">
                 <div class="header-left">
@@ -46,18 +43,16 @@
                 <div class="header-right">
                     <div class="notification">
                         <i class="fas fa-bell"></i>
-                        <span class="badge">3</span>
+                        <span class="badge" id="notificationCount">0</span>
                     </div>
                     <div class="user-menu">
                         <img src="assets/user-avatar.jpg" alt="User Avatar" class="avatar-sm">
                         <span id="userNameSm">Nome</span>
-                        <i class="fas fa-chevron-down"></i>
                     </div>
                 </div>
             </header>
 
             <div class="content-area">
-                <!-- Áreas da Empresa -->
                 <section class="departments-section">
                     <h2>Áreas da GlobalFocus</h2>
                     <div class="departments-grid">
@@ -94,7 +89,6 @@
                     </div>
                 </section>
 
-                <!-- Mensagens para o Diretor -->
                 <section class="messages-section" id="messagesSection">
                     <h2>Mensagens para o Diretor</h2>
                     <div class="messages-container">
@@ -104,7 +98,7 @@
                                 <button class="btn-new-message" id="newMessageBtn"><i class="fas fa-plus"></i> Nova Mensagem</button>
                             </div>
                             <div class="message-threads" id="messageThreads">
-                                <!-- As threads de mensagens serão carregadas aqui -->
+                                <div class="no-messages">Carregando mensagens...</div>
                             </div>
                         </div>
                         <div class="message-content" id="messageContent">
@@ -116,7 +110,6 @@
                     </div>
                 </section>
 
-                <!-- Modal de Nova Mensagem -->
                 <div class="modal" id="newMessageModal">
                     <div class="modal-content">
                         <span class="close-modal">&times;</span>
@@ -126,7 +119,6 @@
                                 <label for="messageRecipient">Para:</label>
                                 <select id="messageRecipient" required>
                                     <option value="">Selecione o diretor</option>
-                                    <!-- Opções serão preenchidas dinamicamente -->
                                 </select>
                             </div>
                             <div class="form-group">
@@ -144,8 +136,8 @@
             </div>
         </div>
     </div>
-
-    <script src="js/main.js"></script>
+    <div class="loading-indicator" id="loadingIndicator"></div>
     <script src="js/github.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>
