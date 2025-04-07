@@ -1,104 +1,137 @@
-// Dados de usuários
+// Dados de usuários (simulados - em produção, isso viria de um backend seguro)
 const users = {
-    consultores: [
-        { id: 1, nome: "Consultor 1 GP", email: "consultor1.gp@globalfocus.com", senha: "senha123", area: "gestao-pessoas" },
-        { id: 2, nome: "Consultor 2 GP", email: "consultor2.gp@globalfocus.com", senha: "senha123", area: "gestao-pessoas" },
-        { id: 3, nome: "Consultor 3 GP", email: "consultor3.gp@globalfocus.com", senha: "senha123", area: "gestao-pessoas" },
-        { id: 4, nome: "Consultor 1 MK", email: "consultor1.mk@globalfocus.com", senha: "senha123", area: "marketing" },
-        { id: 5, nome: "Consultor 2 MK", email: "consultor2.mk@globalfocus.com", senha: "senha123", area: "marketing" },
-        { id: 6, nome: "Consultor 3 MK", email: "consultor3.mk@globalfocus.com", senha: "senha123", area: "marketing" },
-        { id: 7, nome: "Consultor 1 FN", email: "consultor1.fn@globalfocus.com", senha: "senha123", area: "financas" },
-        { id: 8, nome: "Consultor 2 FN", email: "consultor2.fn@globalfocus.com", senha: "senha123", area: "financas" },
-        { id: 9, nome: "Consultor 3 FN", email: "consultor3.fn@globalfocus.com", senha: "senha123", area: "financas" },
-        { id: 10, nome: "Consultor 1 LG", email: "consultor1.lg@globalfocus.com", senha: "senha123", area: "logistica" },
-        { id: 11, nome: "Consultor 2 LG", email: "consultor2.lg@globalfocus.com", senha: "senha123", area: "logistica" },
-        { id: 12, nome: "Consultor 3 LG", email: "consultor3.lg@globalfocus.com", senha: "senha123", area: "logistica" },
-        { id: 13, nome: "Consultor 1 NN", email: "consultor1.nn@globalfocus.com", senha: "senha123", area: "novos-negocios" },
-        { id: 14, nome: "Consultor 2 NN", email: "consultor2.nn@globalfocus.com", senha: "senha123", area: "novos-negocios" },
-        { id: 15, nome: "Consultor 3 NN", email: "consultor3.nn@globalfocus.com", senha: "senha123", area: "novos-negocios" },
-        { id: 16, nome: "Consultor 1 AD", email: "consultor1.ad@globalfocus.com", senha: "senha123", area: "administrativa" },
-        { id: 17, nome: "Consultor 2 AD", email: "consultor2.ad@globalfocus.com", senha: "senha123", area: "administrativa" },
-        { id: 18, nome: "Consultor 3 AD", email: "consultor3.ad@globalfocus.com", senha: "senha123", area: "administrativa" }
-    ],
-    diretores: [
-        { id: 101, nome: "Diretor GP", email: "diretor.gp@globalfocus.com", senha: "senha123", area: "gestao-pessoas" },
-        { id: 102, nome: "Diretor MK", email: "diretor.mk@globalfocus.com", senha: "senha123", area: "marketing" },
-        { id: 103, nome: "Diretor FN", email: "diretor.fn@globalfocus.com", senha: "senha123", area: "financas" },
-        { id: 104, nome: "Diretor LG", email: "diretor.lg@globalfocus.com", senha: "senha123", area: "logistica" },
-        { id: 105, nome: "Diretor NN", email: "diretor.nn@globalfocus.com", senha: "senha123", area: "novos-negocios" },
-        { id: 106, nome: "Diretor AD", email: "diretor.ad@globalfocus.com", senha: "senha123", area: "administrativa" }
-    ]
+    // Gestão de Pessoas
+    'gp_consultor1': { password: 'consultor123', area: 'gestao', role: 'consultor', name: 'Consultor GP 1' },
+    'gp_consultor2': { password: 'consultor123', area: 'gestao', role: 'consultor', name: 'Consultor GP 2' },
+    'gp_consultor3': { password: 'consultor123', area: 'gestao', role: 'consultor', name: 'Consultor GP 3' },
+    'gp_diretor': { password: 'diretor123', area: 'gestao', role: 'diretor', name: 'Diretor GP' },
+    
+    // Marketing
+    'mk_consultor1': { password: 'consultor123', area: 'marketing', role: 'consultor', name: 'Consultor MK 1' },
+    'mk_consultor2': { password: 'consultor123', area: 'marketing', role: 'consultor', name: 'Consultor MK 2' },
+    'mk_consultor3': { password: 'consultor123', area: 'marketing', role: 'consultor', name: 'Consultor MK 3' },
+    'mk_diretor': { password: 'diretor123', area: 'marketing', role: 'diretor', name: 'Diretor MK' },
+    
+    // Finanças
+    'fn_consultor1': { password: 'consultor123', area: 'financas', role: 'consultor', name: 'Consultor FN 1' },
+    'fn_consultor2': { password: 'consultor123', area: 'financas', role: 'consultor', name: 'Consultor FN 2' },
+    'fn_consultor3': { password: 'consultor123', area: 'financas', role: 'consultor', name: 'Consultor FN 3' },
+    'fn_diretor': { password: 'diretor123', area: 'financas', role: 'diretor', name: 'Diretor FN' },
+    
+    // Logística
+    'lg_consultor1': { password: 'consultor123', area: 'logistica', role: 'consultor', name: 'Consultor LG 1' },
+    'lg_consultor2': { password: 'consultor123', area: 'logistica', role: 'consultor', name: 'Consultor LG 2' },
+    'lg_consultor3': { password: 'consultor123', area: 'logistica', role: 'consultor', name: 'Consultor LG 3' },
+    'lg_diretor': { password: 'diretor123', area: 'logistica', role: 'diretor', name: 'Diretor LG' },
+    
+    // Novos Negócios
+    'nn_consultor1': { password: 'consultor123', area: 'negocios', role: 'consultor', name: 'Consultor NN 1' },
+    'nn_consultor2': { password: 'consultor123', area: 'negocios', role: 'consultor', name: 'Consultor NN 2' },
+    'nn_consultor3': { password: 'consultor123', area: 'negocios', role: 'consultor', name: 'Consultor NN 3' },
+    'nn_diretor': { password: 'diretor123', area: 'negocios', role: 'diretor', name: 'Diretor NN' },
+    
+    // Administrativa
+    'adm_consultor1': { password: 'consultor123', area: 'administrativa', role: 'consultor', name: 'Consultor ADM 1' },
+    'adm_consultor2': { password: 'consultor123', area: 'administrativa', role: 'consultor', name: 'Consultor ADM 2' },
+    'adm_consultor3': { password: 'consultor123', area: 'administrativa', role: 'consultor', name: 'Consultor ADM 3' },
+    'adm_diretor': { password: 'diretor123', area: 'administrativa', role: 'diretor', name: 'Diretor ADM' },
+    
+    // Usuário GlobalFocusAfs
+    'GlobalFocusAfs': { password: 'admin123', area: 'administrativa', role: 'admin', name: 'Administrador GlobalFocus' }
 };
 
-// Função para verificar login
-function checkLogin() {
-    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-    
-    if (window.location.pathname.includes('dashboard.html') && !currentUser) {
+// Mapeamento de áreas para nomes completos
+const areaNames = {
+    'gestao': 'Gestão de Pessoas',
+    'marketing': 'Marketing',
+    'financas': 'Finanças',
+    'logistica': 'Logística',
+    'negocios': 'Novos Negócios',
+    'administrativa': 'Administrativa'
+};
+
+// Verifica se o usuário está logado
+function checkAuth() {
+    const currentUser = localStorage.getItem('currentUser');
+    if (!currentUser && !window.location.pathname.endsWith('index.html')) {
         window.location.href = 'index.html';
-    } else if (window.location.pathname.includes('index.html') && currentUser) {
-        window.location.href = 'dashboard.html';
     }
 }
 
-// Função para fazer login
-function login(email, password) {
-    // Verifica consultores
-    let user = users.consultores.find(u => u.email === email && u.senha === password);
+// Função de login
+function login(username, password, area) {
+    const userKey = `${area}_${username.toLowerCase()}`;
+    const user = users[userKey] || users[username];
     
-    // Se não encontrou, verifica diretores
-    if (!user) {
-        user = users.diretores.find(u => u.email === email && u.senha === password);
-    }
-    
-    if (user) {
-        localStorage.setItem('currentUser', JSON.stringify(user));
+    if (user && user.password === password && user.area === area) {
+        // Salva os dados do usuário no localStorage
+        localStorage.setItem('currentUser', JSON.stringify({
+            username: username,
+            name: user.name,
+            area: area,
+            role: user.role
+        }));
+        
+        // Redireciona para o dashboard
+        window.location.href = 'dashboard.html';
         return true;
     }
     
     return false;
 }
 
-// Função para logout
+// Função de logout
 function logout() {
     localStorage.removeItem('currentUser');
     window.location.href = 'index.html';
 }
 
-// Configura o evento de login
-document.addEventListener('DOMContentLoaded', function() {
-    checkLogin();
+// Carrega as informações do usuário logado
+function loadUserInfo() {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
     
-    const loginForm = document.getElementById('loginForm');
-    if (loginForm) {
-        loginForm.addEventListener('submit', function(e) {
+    if (currentUser) {
+        // Atualiza a sidebar
+        document.getElementById('sidebarUsername').textContent = currentUser.name;
+        document.getElementById('sidebarRole').textContent = currentUser.role === 'consultor' ? 'Consultor' : 
+                                                          currentUser.role === 'diretor' ? 'Diretor' : 'Administrador';
+        document.getElementById('sidebarArea').textContent = areaNames[currentUser.area] || currentUser.area;
+        
+        // Atualiza o header
+        document.getElementById('headerUsername').textContent = currentUser.name;
+        document.getElementById('welcomeUsername').textContent = currentUser.name;
+    }
+}
+
+// Evento de login
+document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('loginForm')) {
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const email = document.getElementById('email').value;
+            const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            const errorElement = document.getElementById('loginError');
+            const area = document.getElementById('area').value;
             
-            if (login(email, password)) {
-                window.location.href = 'dashboard.html';
-            } else {
-                errorElement.textContent = 'E-mail ou senha incorretos';
+            if (!username || !password || !area) {
+                alert('Por favor, preencha todos os campos.');
+                return;
+            }
+            
+            if (!login(username, password, area)) {
+                alert('Usuário, senha ou área incorretos.');
             }
         });
     }
     
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            logout();
-        });
+    // Evento de logout
+    if (document.getElementById('logoutBtn')) {
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+    }
+    
+    // Carrega as informações do usuário se estiver na dashboard
+    if (document.getElementById('sidebarUsername')) {
+        loadUserInfo();
+        checkAuth();
     }
 });
-
-// Exporta funções para uso em outros arquivos
-window.auth = {
-    checkLogin,
-    login,
-    logout,
-    users
-};
