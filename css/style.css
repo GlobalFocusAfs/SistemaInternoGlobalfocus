@@ -24,6 +24,13 @@ body {
     color: var(--dark-color);
 }
 
+.error-message {
+    color: var(--danger-color);
+    margin-top: 1rem;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
 .login-container {
     display: flex;
     flex-direction: column;
@@ -301,56 +308,11 @@ body {
     background-color: #f5f7fa;
 }
 
-.departments-section h2 {
-    margin-bottom: 1.5rem;
-    color: var(--dark-color);
-    font-size: 1.5rem;
-}
-
-.departments-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 3rem;
-}
-
-.department-card {
-    background-color: var(--white-color);
-    border-radius: 10px;
-    padding: 1.5rem;
-    text-align: center;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
-    cursor: pointer;
-}
-
-.department-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-}
-
-.department-card i {
-    font-size: 2.5rem;
-    color: var(--primary-color);
-    margin-bottom: 1rem;
-}
-
-.department-card h3 {
-    margin-bottom: 0.5rem;
-    color: var(--dark-color);
-}
-
-.department-card p {
-    color: var(--gray-color);
-    font-size: 0.9rem;
-}
-
 .messages-section {
     background-color: var(--white-color);
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     padding: 1.5rem;
-    margin-top: 2rem;
 }
 
 .messages-section h2 {
@@ -716,9 +678,5 @@ body {
     
     .content-area {
         padding: 1rem;
-    }
-    
-    .departments-grid {
-        grid-template-columns: 1fr;
     }
 }
