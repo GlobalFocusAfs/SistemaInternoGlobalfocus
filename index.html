@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GlobalFocus - Sistema de Gerenciamento</title>
-    <link rel="stylesheet" href="styles/style.css">
+    <link rel="stylesheet" href="./styles/style.css">
 </head>
 <body>
     <header>
@@ -15,181 +15,49 @@
     </header>
 
     <div class="container">
-        <!-- Tela de Login -->
-        <div id="login-container" class="login-container">
+        <!-- Tela de Login (ÚNICO painel com 'active' inicial) -->
+        <div id="login-container" class="panel active">
             <h2>Login</h2>
             <form id="login-form">
                 <input type="text" id="username" placeholder="Usuário" required>
                 <input type="password" id="password" placeholder="Senha" required>
                 <button type="submit">Entrar</button>
             </form>
-            <div id="login-status" class="status-message"></div>
+            <div id="login-message" class="message"></div>
         </div>
 
-        <!-- Dashboard do Consultor -->
-        <div id="consultor-dashboard" class="dashboard">
+        <!-- Área do Consultor -->
+        <div id="consultor-dashboard" class="panel">
             <button class="logout-btn" onclick="logout()">Sair</button>
-            <h2 class="area-title" id="consultor-area">Área do Consultor</h2>
-            <p>Bem-vindo, <span id="consultor-name"></span></p>
+            <h2 id="consultor-title">Área do Consultor</h2>
+            <div class="user-greeting">Bem-vindo, <span id="consultor-name"></span></div>
             
-            <div>
+            <div class="message-box">
                 <h3>Enviar mensagem para o Diretor</h3>
-                <textarea id="consultor-message" rows="5" placeholder="Digite sua mensagem aqui..."></textarea>
+                <textarea id="consultor-message" rows="5"></textarea>
                 <button onclick="sendMessage()">Enviar</button>
-                <div id="message-status" class="status-message"></div>
+                <div id="message-status" class="message"></div>
             </div>
             
-            <div class="messages" id="consultor-messages">
+            <div class="message-history">
                 <h3>Histórico de Mensagens</h3>
-                <!-- Mensagens serão exibidas aqui -->
+                <div id="consultor-messages"></div>
             </div>
         </div>
 
-        <!-- Dashboard do Diretor -->
-        <div id="diretor-dashboard" class="dashboard">
+        <!-- Área do Diretor -->
+        <div id="diretor-dashboard" class="panel">
             <button class="logout-btn" onclick="logout()">Sair</button>
-            <h2 class="area-title" id="diretor-area">Área do Diretor</h2>
-            <p>Bem-vindo, <span id="diretor-name"></span></p>
+            <h2 id="diretor-title">Área do Diretor</h2>
+            <div class="user-greeting">Bem-vindo, <span id="diretor-name"></span></div>
             
-            <div class="messages" id="diretor-messages">
+            <div class="message-history">
                 <h3>Mensagens dos Consultores</h3>
-                <!-- Mensagens serão exibidas aqui -->
+                <div id="diretor-messages"></div>
             </div>
         </div>
     </div>
 
-    <script src="scripts/github-db.js"></script>
-    <script>
-        // Configurações do GitHub
-        const GITHUB_CONFIG = {
-            owner: "GlobalFocusAfs",
-            repo: "GlobalFocus",
-            path: "data/database.json",
-            token: "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"
-        };
-
-        // Usuário atual
-        let currentUser = null;
-        let database = { users: {}, messages: {} };
-
-        // Inicialização
-        document.addEventListener('DOMContentLoaded', async () => {
-            try {
-                database = await loadDatabase();
-                setupLoginForm();
-            } catch (error) {
-                showStatus('login-status', `Erro ao carregar dados: ${error.message}`, 'error');
-            }
-        });
-
-        function setupLoginForm() {
-            document.getElementById('login-form').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                const username = document.getElementById('username').value;
-                const password = document.getElementById('password').value;
-                
-                if (database.users[username] && database.users[username].password === password) {
-                    currentUser = database.users[username];
-                    currentUser.username = username;
-                    await loginSuccess();
-                } else {
-                    showStatus('login-status', 'Usuário ou senha incorretos!', 'error');
-                }
-            });
-        }
-
-        async function loginSuccess() {
-            document.getElementById('login-container').style.display = 'none';
-            
-            if (currentUser.role === 'consultor') {
-                document.getElementById('consultor-name').textContent = currentUser.name;
-                document.getElementById('consultor-area').textContent = `Área do Consultor - ${currentUser.area}`;
-                document.getElementById('consultor-dashboard').style.display = 'block';
-                await loadConsultorMessages();
-            } else if (currentUser.role === 'diretor') {
-                document.getElementById('diretor-name').textContent = currentUser.name;
-                document.getElementById('diretor-area').textContent = `Área do Diretor - ${currentUser.area}`;
-                document.getElementById('diretor-dashboard').style.display = 'block';
-                await loadDiretorMessages();
-            }
-        }
-
-        async function sendMessage() {
-            const messageText = document.getElementById('consultor-message').value;
-            if (!messageText.trim()) {
-                showStatus('message-status', 'Digite uma mensagem antes de enviar!', 'error');
-                return;
-            }
-            
-            const message = {
-                from: currentUser.name,
-                text: messageText,
-                date: new Date().toISOString()
-            };
-            
-            try {
-                database.messages[currentUser.area].push(message);
-                await saveDatabase();
-                document.getElementById('consultor-message').value = '';
-                showStatus('message-status', 'Mensagem enviada com sucesso!', 'success');
-                await loadConsultorMessages();
-            } catch (error) {
-                showStatus('message-status', `Erro ao enviar: ${error.message}`, 'error');
-            }
-        }
-
-        async function loadConsultorMessages() {
-            const container = document.getElementById('consultor-messages');
-            container.innerHTML = '<h3>Histórico de Mensagens</h3>';
-            
-            const areaMessages = database.messages[currentUser.area] || [];
-            if (areaMessages.length === 0) {
-                container.innerHTML += '<p>Nenhuma mensagem enviada ainda.</p>';
-                return;
-            }
-            
-            areaMessages.forEach(msg => {
-                const msgDiv = document.createElement('div');
-                msgDiv.className = 'message';
-                msgDiv.innerHTML = `<strong>${msg.from}</strong> (${new Date(msg.date).toLocaleString()}):<br>${msg.text}`;
-                container.appendChild(msgDiv);
-            });
-        }
-
-        async function loadDiretorMessages() {
-            const container = document.getElementById('diretor-messages');
-            container.innerHTML = '<h3>Mensagens dos Consultores</h3>';
-            
-            const areaMessages = database.messages[currentUser.area] || [];
-            if (areaMessages.length === 0) {
-                container.innerHTML += '<p>Nenhuma mensagem recebida ainda.</p>';
-                return;
-            }
-            
-            areaMessages.forEach(msg => {
-                const msgDiv = document.createElement('div');
-                msgDiv.className = 'message';
-                msgDiv.innerHTML = `<strong>${msg.from}</strong> (${new Date(msg.date).toLocaleString()}):<br>${msg.text}`;
-                container.appendChild(msgDiv);
-            });
-        }
-
-        function logout() {
-            currentUser = null;
-            document.getElementById('consultor-dashboard').style.display = 'none';
-            document.getElementById('diretor-dashboard').style.display = 'none';
-            document.getElementById('login-container').style.display = 'block';
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
-            document.getElementById('login-status').textContent = '';
-        }
-
-        function showStatus(elementId, message, type) {
-            const element = document.getElementById(elementId);
-            element.textContent = message;
-            element.className = `status-message ${type}`;
-            setTimeout(() => element.textContent = '', 5000);
-        }
-    </script>
+    <script src="./scripts/app.js"></script>
 </body>
 </html>
