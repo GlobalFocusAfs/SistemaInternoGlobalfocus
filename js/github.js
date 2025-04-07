@@ -35,7 +35,6 @@ async function loadDataFromGitHub() {
     toggleLoading(true);
     
     try {
-        console.log('Carregando dados do GitHub...');
         const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`, {
             headers: {
                 'Authorization': `token ${GITHUB_TOKEN}`,
@@ -45,7 +44,6 @@ async function loadDataFromGitHub() {
         
         if (!response.ok) {
             if (response.status === 404) {
-                console.log('Arquivo não encontrado, criando novo...');
                 const created = await saveDataToGitHub();
                 return created ? { messages: [] } : { messages: [] };
             }
@@ -56,8 +54,6 @@ async function loadDataFromGitHub() {
         const content = JSON.parse(decodeURIComponent(escape(atob(data.content))));
         
         messages = content.messages || [];
-        console.log('Mensagens carregadas:', messages.length);
-        
         return content;
     } catch (error) {
         console.error('Erro ao carregar dados:', error);
@@ -76,8 +72,6 @@ async function saveDataToGitHub() {
     toggleLoading(true);
     
     try {
-        console.log('Salvando dados no GitHub...');
-        
         // Obtém SHA do arquivo atual
         let sha = '';
         try {
@@ -98,7 +92,7 @@ async function saveDataToGitHub() {
         
         // Prepara os dados para salvar
         const dataToSave = {
-            users: window.users || {},
+            users: window.auth.users || {},
             messages: messages,
             lastUpdated: new Date().toISOString()
         };
@@ -124,7 +118,6 @@ async function saveDataToGitHub() {
             throw new Error(errorData.message || 'Erro ao salvar dados');
         }
         
-        console.log('Dados salvos no GitHub com sucesso!');
         showAlert('Dados salvos com sucesso!', 'success');
         return true;
     } catch (error) {
@@ -137,7 +130,7 @@ async function saveDataToGitHub() {
     }
 }
 
-// Exportar funções para uso global
+// Exporta funções para uso global
 window.github = {
     loadData: loadDataFromGitHub,
     saveData: saveDataToGitHub,
