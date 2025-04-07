@@ -4,83 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GlobalFocus - Sistema de Gerenciamento</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-            color: #333;
-        }
-        .container {
-            width: 80%;
-            margin: auto;
-            overflow: hidden;
-        }
-        header {
-            background: #0056b3;
-            color: white;
-            padding: 20px 0;
-            text-align: center;
-        }
-        .login-container {
-            background: white;
-            padding: 20px;
-            margin: 50px auto;
-            width: 300px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            border-radius: 5px;
-        }
-        .dashboard {
-            display: none;
-            background: white;
-            padding: 20px;
-            margin: 20px auto;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            border-radius: 5px;
-        }
-        input[type="text"], input[type="password"], textarea {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        button {
-            background: #0056b3;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-        button:hover {
-            background: #003d82;
-        }
-        .area-title {
-            color: #0056b3;
-            border-bottom: 2px solid #0056b3;
-            padding-bottom: 10px;
-        }
-        .messages {
-            margin-top: 20px;
-            border-top: 1px solid #ddd;
-            padding-top: 20px;
-        }
-        .message {
-            background: #f9f9f9;
-            padding: 10px;
-            margin: 10px 0;
-            border-left: 4px solid #0056b3;
-        }
-        .logout-btn {
-            float: right;
-            background: #dc3545;
-        }
-        .logout-btn:hover {
-            background: #bb2d3b;
-        }
-    </style>
+    <link rel="stylesheet" href="styles/style.css">
 </head>
 <body>
     <header>
@@ -99,6 +23,7 @@
                 <input type="password" id="password" placeholder="Senha" required>
                 <button type="submit">Entrar</button>
             </form>
+            <div id="login-status" class="status-message"></div>
         </div>
 
         <!-- Dashboard do Consultor -->
@@ -111,6 +36,7 @@
                 <h3>Enviar mensagem para o Diretor</h3>
                 <textarea id="consultor-message" rows="5" placeholder="Digite sua mensagem aqui..."></textarea>
                 <button onclick="sendMessage()">Enviar</button>
+                <div id="message-status" class="status-message"></div>
             </div>
             
             <div class="messages" id="consultor-messages">
@@ -132,117 +58,91 @@
         </div>
     </div>
 
+    <script src="scripts/github-db.js"></script>
     <script>
-        // Banco de dados de usuários (em um sistema real, isso estaria no servidor)
-        const users = {
-            // Financeiro
-            'financeiro_diretor': { password: 'fin123', name: 'Diretor Financeiro', role: 'diretor', area: 'Financeiro' },
-            'financeiro_consultor1': { password: 'fin1', name: 'Consultor 1 Financeiro', role: 'consultor', area: 'Financeiro' },
-            'financeiro_consultor2': { password: 'fin2', name: 'Consultor 2 Financeiro', role: 'consultor', area: 'Financeiro' },
-            'financeiro_consultor3': { password: 'fin3', name: 'Consultor 3 Financeiro', role: 'consultor', area: 'Financeiro' },
-            
-            // Marketing
-            'marketing_diretor': { password: 'mkt123', name: 'Diretor Marketing', role: 'diretor', area: 'Marketing' },
-            'marketing_consultor1': { password: 'mkt1', name: 'Consultor 1 Marketing', role: 'consultor', area: 'Marketing' },
-            'marketing_consultor2': { password: 'mkt2', name: 'Consultor 2 Marketing', role: 'consultor', area: 'Marketing' },
-            'marketing_consultor3': { password: 'mkt3', name: 'Consultor 3 Marketing', role: 'consultor', area: 'Marketing' },
-            
-            // Recursos Humanos
-            'rh_diretor': { password: 'rh123', name: 'Diretor RH', role: 'diretor', area: 'Recursos Humanos' },
-            'rh_consultor1': { password: 'rh1', name: 'Consultor 1 RH', role: 'consultor', area: 'Recursos Humanos' },
-            'rh_consultor2': { password: 'rh2', name: 'Consultor 2 RH', role: 'consultor', area: 'Recursos Humanos' },
-            'rh_consultor3': { password: 'rh3', name: 'Consultor 3 RH', role: 'consultor', area: 'Recursos Humanos' },
-            
-            // Novos Negócios
-            'negocios_diretor': { password: 'neg123', name: 'Diretor Novos Negócios', role: 'diretor', area: 'Novos Negócios' },
-            'negocios_consultor1': { password: 'neg1', name: 'Consultor 1 Novos Negócios', role: 'consultor', area: 'Novos Negócios' },
-            'negocios_consultor2': { password: 'neg2', name: 'Consultor 2 Novos Negócios', role: 'consultor', area: 'Novos Negócios' },
-            'negocios_consultor3': { password: 'neg3', name: 'Consultor 3 Novos Negócios', role: 'consultor', area: 'Novos Negócios' },
-            
-            // Administrativo
-            'admin_diretor': { password: 'adm123', name: 'Diretor Administrativo', role: 'diretor', area: 'Administrativo' },
-            'admin_consultor1': { password: 'adm1', name: 'Consultor 1 Administrativo', role: 'consultor', area: 'Administrativo' },
-            'admin_consultor2': { password: 'adm2', name: 'Consultor 2 Administrativo', role: 'consultor', area: 'Administrativo' },
-            'admin_consultor3': { password: 'adm3', name: 'Consultor 3 Administrativo', role: 'consultor', area: 'Administrativo' },
-            
-            // Logística
-            'logistica_diretor': { password: 'log123', name: 'Diretor Logística', role: 'diretor', area: 'Logística' },
-            'logistica_consultor1': { password: 'log1', name: 'Consultor 1 Logística', role: 'consultor', area: 'Logística' },
-            'logistica_consultor2': { password: 'log2', name: 'Consultor 2 Logística', role: 'consultor', area: 'Logística' },
-            'logistica_consultor3': { password: 'log3', name: 'Consultor 3 Logística', role: 'consultor', area: 'Logística' }
+        // Configurações do GitHub
+        const GITHUB_CONFIG = {
+            owner: "GlobalFocusAfs",
+            repo: "GlobalFocus",
+            path: "data/database.json",
+            token: "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"
         };
 
-        // Armazenamento de mensagens (em um sistema real, isso estaria no servidor)
-        const messages = {
-            'Financeiro': [],
-            'Marketing': [],
-            'Recursos Humanos': [],
-            'Novos Negócios': [],
-            'Administrativo': [],
-            'Logística': []
-        };
-
-        // Usuário atualmente logado
+        // Usuário atual
         let currentUser = null;
+        let database = { users: {}, messages: {} };
 
-        // Manipulador de login
-        document.getElementById('login-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            
-            if (users[username] && users[username].password === password) {
-                currentUser = users[username];
-                currentUser.username = username;
-                loginSuccess();
-            } else {
-                alert('Usuário ou senha incorretos!');
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                database = await loadDatabase();
+                setupLoginForm();
+            } catch (error) {
+                showStatus('login-status', `Erro ao carregar dados: ${error.message}`, 'error');
             }
         });
 
-        // Função chamada após login bem-sucedido
-        function loginSuccess() {
+        function setupLoginForm() {
+            document.getElementById('login-form').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                
+                if (database.users[username] && database.users[username].password === password) {
+                    currentUser = database.users[username];
+                    currentUser.username = username;
+                    await loginSuccess();
+                } else {
+                    showStatus('login-status', 'Usuário ou senha incorretos!', 'error');
+                }
+            });
+        }
+
+        async function loginSuccess() {
             document.getElementById('login-container').style.display = 'none';
             
             if (currentUser.role === 'consultor') {
                 document.getElementById('consultor-name').textContent = currentUser.name;
                 document.getElementById('consultor-area').textContent = `Área do Consultor - ${currentUser.area}`;
                 document.getElementById('consultor-dashboard').style.display = 'block';
-                loadConsultorMessages();
+                await loadConsultorMessages();
             } else if (currentUser.role === 'diretor') {
                 document.getElementById('diretor-name').textContent = currentUser.name;
                 document.getElementById('diretor-area').textContent = `Área do Diretor - ${currentUser.area}`;
                 document.getElementById('diretor-dashboard').style.display = 'block';
-                loadDiretorMessages();
+                await loadDiretorMessages();
             }
         }
 
-        // Função para enviar mensagem (consultor para diretor)
-        function sendMessage() {
+        async function sendMessage() {
             const messageText = document.getElementById('consultor-message').value;
             if (!messageText.trim()) {
-                alert('Digite uma mensagem antes de enviar!');
+                showStatus('message-status', 'Digite uma mensagem antes de enviar!', 'error');
                 return;
             }
             
             const message = {
                 from: currentUser.name,
                 text: messageText,
-                date: new Date().toLocaleString()
+                date: new Date().toISOString()
             };
             
-            messages[currentUser.area].push(message);
-            document.getElementById('consultor-message').value = '';
-            loadConsultorMessages();
-            alert('Mensagem enviada com sucesso para o diretor!');
+            try {
+                database.messages[currentUser.area].push(message);
+                await saveDatabase();
+                document.getElementById('consultor-message').value = '';
+                showStatus('message-status', 'Mensagem enviada com sucesso!', 'success');
+                await loadConsultorMessages();
+            } catch (error) {
+                showStatus('message-status', `Erro ao enviar: ${error.message}`, 'error');
+            }
         }
 
-        // Carrega mensagens para o consultor
-        function loadConsultorMessages() {
+        async function loadConsultorMessages() {
             const container = document.getElementById('consultor-messages');
             container.innerHTML = '<h3>Histórico de Mensagens</h3>';
             
-            const areaMessages = messages[currentUser.area];
+            const areaMessages = database.messages[currentUser.area] || [];
             if (areaMessages.length === 0) {
                 container.innerHTML += '<p>Nenhuma mensagem enviada ainda.</p>';
                 return;
@@ -251,17 +151,16 @@
             areaMessages.forEach(msg => {
                 const msgDiv = document.createElement('div');
                 msgDiv.className = 'message';
-                msgDiv.innerHTML = `<strong>${msg.from}</strong> (${msg.date}):<br>${msg.text}`;
+                msgDiv.innerHTML = `<strong>${msg.from}</strong> (${new Date(msg.date).toLocaleString()}):<br>${msg.text}`;
                 container.appendChild(msgDiv);
             });
         }
 
-        // Carrega mensagens para o diretor
-        function loadDiretorMessages() {
+        async function loadDiretorMessages() {
             const container = document.getElementById('diretor-messages');
             container.innerHTML = '<h3>Mensagens dos Consultores</h3>';
             
-            const areaMessages = messages[currentUser.area];
+            const areaMessages = database.messages[currentUser.area] || [];
             if (areaMessages.length === 0) {
                 container.innerHTML += '<p>Nenhuma mensagem recebida ainda.</p>';
                 return;
@@ -270,12 +169,11 @@
             areaMessages.forEach(msg => {
                 const msgDiv = document.createElement('div');
                 msgDiv.className = 'message';
-                msgDiv.innerHTML = `<strong>${msg.from}</strong> (${msg.date}):<br>${msg.text}`;
+                msgDiv.innerHTML = `<strong>${msg.from}</strong> (${new Date(msg.date).toLocaleString()}):<br>${msg.text}`;
                 container.appendChild(msgDiv);
             });
         }
 
-        // Função de logout
         function logout() {
             currentUser = null;
             document.getElementById('consultor-dashboard').style.display = 'none';
@@ -283,6 +181,14 @@
             document.getElementById('login-container').style.display = 'block';
             document.getElementById('username').value = '';
             document.getElementById('password').value = '';
+            document.getElementById('login-status').textContent = '';
+        }
+
+        function showStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status-message ${type}`;
+            setTimeout(() => element.textContent = '', 5000);
         }
     </script>
 </body>
